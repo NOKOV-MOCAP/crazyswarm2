@@ -1,3 +1,6 @@
 [submodule "crazyflie/deps/crazyflie_tools"]
 	path = crazyflie/deps/crazyflie_tools
 	url = https://github.com/whoenig/crazyflie_tools.git
+[submodule "nokov_swarm/nokov_swarm"]
+	path = nokov_swarm/nokov_swarm
+	url = git@github.com:NOKOV-MOCAP/NokovSwarm.git

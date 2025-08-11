@@ -3,3 +3,6 @@ crazyswarm2_sim_webots/
 *.pyc
 *.o
 *~
+build/
+install/
+log/
