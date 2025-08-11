@@ -121,8 +121,9 @@ def generate_launch_description():
         DeclareLaunchArgument('backend', default_value='cpp'),
         DeclareLaunchArgument('debug', default_value='False'),
         DeclareLaunchArgument('rviz', default_value='False'),
-        DeclareLaunchArgument('gui', default_value='True'),
-        DeclareLaunchArgument('teleop', default_value='True'),
+        DeclareLaunchArgument('gui', default_value='False'),
+        DeclareLaunchArgument('qgc', default_value='True'),
+        DeclareLaunchArgument('teleop', default_value='False'),
         DeclareLaunchArgument('mocap', default_value='True'),
         DeclareLaunchArgument('teleop_yaml_file', default_value=''),
         OpaqueFunction(function=parse_yaml),
@@ -169,5 +170,13 @@ def generate_launch_description():
             parameters=[{
                 "use_sim_time": PythonExpression(["'", LaunchConfiguration('backend'), "' == 'sim'"]),
             }]
+        ),
+        Node(
+            condition=LaunchConfigurationEquals('qgc', 'True'),
+            package='nokov_swarm',
+            namespace='',
+            executable='nokov_swarm_node',
+            name='qgc'
+            
         ),
     ])
