@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: threadripper
     steps:
       - name: Build firmware
         id: step1
@@ -64,7 +64,7 @@ jobs:
       - name: Upload files
         id: step7
         if: '!cancelled()'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pdf_rosbags_and_logs
           path: |

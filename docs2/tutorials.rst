@@ -94,7 +94,7 @@ Mapping with simple mapper
 
 If you have a crazyflie with a multiranger and flowdeck, you can try out some simple mapping.
 
-Make sure that the scan and odometry logging is enabled in crazyflies.yaml:
+Make sure that the scan and odometry logging is enabled and the reference frame is set to odom in crazyflies.yaml:
 
 .. code-block:: bash
 
@@ -114,6 +114,12 @@ and make sure that the pid controller and kalman filter is enabled:
     stabilizer:
       estimator: 2 # 1: complementary, 2: kalman
       controller: 1 # 1: PID, 2: mellinger
+
+Finally make sure that the reference frame is set to 'cf231/odom' 
+
+.. code-block:: bash
+
+    reference_frame: cf231/odom
 
 If you are using a different name for your crazyflie, make sure to change the following in the example launch file (multiranger_simple_mapper_launch.py):
 
@@ -156,7 +162,7 @@ Go to crazyflie/config/crazyflie.yaml, change the URI of the crazyflie to the on
     enabled: true
     uri: radio://0/20/2M/E7E7E7E701
 
-And enable the following default topic logging:
+And enable the following default topic logging and the reference frames:
 
 .. code-block:: bash
 
@@ -176,6 +182,13 @@ Also, make sure that the standard controller is set to 1 (PID) for the flowdeck 
     stabilizer:
       estimator: 2 # 1: complementary, 2: kalman
       controller: 1 # 1: PID, 2: mellinger
+
+
+Finally make sure that the reference frame is set to 'cf231/odom' 
+
+.. code-block:: bash
+
+    reference_frame: cf231/odom
 
 
 Connecting with the Crazyflie
@@ -317,7 +330,7 @@ Preperation
 ~~~~~~~~~~~
 .. note::
 
-  This tutorial assume you have taken the above mapping tutorial first.
+  This tutorial assume you have done the above mapping tutorial first, along with the yaml file changes
 
 Find the all the files that were created by the RVIZ2 slam toolbox plugin, which should be in format \*.yaml, \*.posegraph, \*.data and \*.pgm, and copy them in the /crazyflie_examples/data/ folder.
 Either you can replace those that are there already ('map.\*'), or call them different and just change the name in the launch file, which will be explain now.
@@ -390,7 +403,7 @@ Let's take a look at the launch file (multiranger_nav3_launch.py):
 
 The crazyflie_server, vel_mux and slam toolbox nodes are obviously the same as the mapping launch file example, with some key differences:
 
-* crazyflie_server: An extra parameter called 'world_tf_name' which changes the name of the 'world' transform to 'map'. This is to ensure compatibilty with the NAV2 bringup node later.
+* crazyflie_server: The reference frame is set to 'map'. This is to ensure compatibilty with the NAV2 bringup node later.
 * slam toolbox:  'map_frame' set to 'map, 'mode' set to localization with a 'map_file_name' and 'map_start_pose' (now remember marking the start position of the mapping tutorial?)
 
 The next two nodes are new, which are included IncludeLaunchDescription to include other launch files (since these are pretty big).

@@ -6,10 +6,13 @@
     hostname: "10.1.1.198"
 
     topics:
+      frame_id: "mocap"
       poses:
         qos:
           mode: "sensor"
           deadline: 100.0 # Hz
+      tf:
+        child_frame_id: "{}_mocap"
 
     marker_configurations:
       default: # for standard Crazyflie

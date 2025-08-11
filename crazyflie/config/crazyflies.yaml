@@ -1,4 +1,6 @@
 # named list of all robots
+fileversion: 3
+
 robots:
   cf231:
     enabled: true
@@ -14,6 +16,8 @@ robots:
     #     topic_name3: 
     #       frequency: 1
     #       vars: ["acc.x", "acc.y"]
+    # reference_frame: "odom_cf231" # use a custom reference frame if no global coordinate system is available
+
   cf5:
     enabled: false
     uri: radio://0/80/2M/E7E7E7E705
@@ -27,11 +31,13 @@ robots:
     #    topic_name3: 
     #      frequency: 1
     #      vars: ["acc.x", "acc.y", "acc.z"]
+    # reference_frame: "odom_cf5" 
+
 # Definition of the various robot types
 robot_types:
   cf21:
     motion_capture:
-      enabled: true
+      tracking: "librigidbodytracker" # one of "vendor", "librigidbodytracker"
       # only if enabled; see motion_capture.yaml
       marker: default_single_marker
       dynamics: default
@@ -51,10 +57,11 @@ robot_types:
     #    topic_name3: 
     #      frequency: 1
     #      vars: ["acc.x", "acc.y", "acc.z"]
+    # reference_frame: "odom" 
 
   cf21_mocap_deck:
     motion_capture:
-      enabled: true
+      tracking: "librigidbodytracker" # one of "vendor", "librigidbodytracker"
       # only if enabled; see motion_capture.yaml
       marker: mocap_deck
       dynamics: default
@@ -62,10 +69,19 @@ robot_types:
     battery:
       voltage_warning: 3.8  # V
       voltage_critical: 3.7 # V
-
     # firmware_params:
     #   kalman:
     #     pNAcc_xy: 1.0 # default 0.5
+    #firmware_logging:
+    #   enabled: true
+    #   default_topics:
+    #   pose:
+    #     frequency: 1 # Hz
+    #   custom_topics:
+    #    topic_name3: 
+    #      frequency: 1
+    #      vars: ["acc.x", "acc.y", "acc.z"]
+    # reference_frame: "mocap" 
 
 # global settings for all robots
 all:
@@ -105,6 +121,9 @@ all:
       extQuatStdDev: 0.5e-1
     # kalman:
     #   resetEstimation: 1
+  # reference frame for on-board state-estimate of all drones (use robot_types/type_name to set per type, or
+  # robots/drone_name to set per drone)
+  reference_frame: "world"
   broadcasts:
     num_repeats: 15 # number of times broadcast commands are repeated
     delay_between_repeats_ms: 1 # delay in milliseconds between individual repeats

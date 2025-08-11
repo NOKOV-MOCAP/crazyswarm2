@@ -18,10 +18,12 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "crazyflie_interfaces/srv/upload_trajectory.hpp"
 #include "motion_capture_tracking_interfaces/msg/named_pose_array.hpp"
 #include "crazyflie_interfaces/msg/full_state.hpp"
 #include "crazyflie_interfaces/msg/position.hpp"
+#include "crazyflie_interfaces/msg/hover.hpp"
 #include "crazyflie_interfaces/msg/status.hpp"
 #include "crazyflie_interfaces/msg/log_data_generic.hpp"
 #include "crazyflie_interfaces/msg/connection_statistics_array.hpp"
@@ -40,6 +42,12 @@ using std_srvs::srv::Empty;
 
 using motion_capture_tracking_interfaces::msg::NamedPoseArray;
 using crazyflie_interfaces::msg::FullState;
+
+#ifdef ROS_DISTRO_HUMBLE
+inline auto get_service_qos() { return rmw_qos_profile_services_default; }
+#else
+inline auto get_service_qos() { return rclcpp::ServicesQoS(); }
+#endif
 
 // Note on logging: we use a single logger with string prefixes
 // A better way would be to use named child loggers, but these do not
@@ -113,6 +121,20 @@ private:
     uint16_t right;
   } __attribute__((packed));
 
+  struct logOdom {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+    int32_t quatCompressed;
+    int16_t vx;
+    int16_t vy;
+    int16_t vz;
+    //int16_t rateRoll;  
+    //int16_t ratePitch;
+    //int16_t rateYaw;
+  } __attribute__((packed));
+
+
   struct logStatus {
     // general status
     uint16_t supervisorInfo; // supervisor.info
@@ -156,20 +178,22 @@ public:
     // Services
     auto service_qos = rmw_qos_profile_services_default;
 
-    service_emergency_ = node->create_service<Empty>(name + "/emergency", std::bind(&CrazyflieROS::emergency, this, _1, _2), service_qos, callback_group_cf_srv);
-    service_start_trajectory_ = node->create_service<StartTrajectory>(name + "/start_trajectory", std::bind(&CrazyflieROS::start_trajectory, this, _1, _2), service_qos, callback_group_cf_srv);
-    service_takeoff_ = node->create_service<Takeoff>(name + "/takeoff", std::bind(&CrazyflieROS::takeoff, this, _1, _2), service_qos, callback_group_cf_srv);
-    service_land_ = node->create_service<Land>(name + "/land", std::bind(&CrazyflieROS::land, this, _1, _2), service_qos, callback_group_cf_srv);
-    service_go_to_ = node->create_service<GoTo>(name + "/go_to", std::bind(&CrazyflieROS::go_to, this, _1, _2), service_qos, callback_group_cf_srv);
-    service_upload_trajectory_ = node->create_service<UploadTrajectory>(name + "/upload_trajectory", std::bind(&CrazyflieROS::upload_trajectory, this, _1, _2), service_qos, callback_group_cf_srv);
-    service_notify_setpoints_stop_ = node->create_service<NotifySetpointsStop>(name + "/notify_setpoints_stop", std::bind(&CrazyflieROS::notify_setpoints_stop, this, _1, _2), service_qos, callback_group_cf_srv);
-    service_arm_ = node->create_service<Arm>(name + "/arm", std::bind(&CrazyflieROS::arm, this, _1, _2), service_qos, callback_group_cf_srv);
+
+    service_emergency_ = node->create_service<Empty>(name + "/emergency", std::bind(&CrazyflieROS::emergency, this, _1, _2),  get_service_qos(), callback_group_cf_srv);
+    service_start_trajectory_ = node->create_service<StartTrajectory>(name + "/start_trajectory", std::bind(&CrazyflieROS::start_trajectory, this, _1, _2), get_service_qos(), callback_group_cf_srv);
+    service_takeoff_ = node->create_service<Takeoff>(name + "/takeoff", std::bind(&CrazyflieROS::takeoff, this, _1, _2), get_service_qos(), callback_group_cf_srv);
+    service_land_ = node->create_service<Land>(name + "/land", std::bind(&CrazyflieROS::land, this, _1, _2), get_service_qos(), callback_group_cf_srv);
+    service_go_to_ = node->create_service<GoTo>(name + "/go_to", std::bind(&CrazyflieROS::go_to, this, _1, _2), get_service_qos(), callback_group_cf_srv);
+    service_upload_trajectory_ = node->create_service<UploadTrajectory>(name + "/upload_trajectory", std::bind(&CrazyflieROS::upload_trajectory, this, _1, _2), get_service_qos(), callback_group_cf_srv);
+    service_notify_setpoints_stop_ = node->create_service<NotifySetpointsStop>(name + "/notify_setpoints_stop", std::bind(&CrazyflieROS::notify_setpoints_stop, this, _1, _2), get_service_qos(), callback_group_cf_srv);
+    service_arm_ = node->create_service<Arm>(name + "/arm", std::bind(&CrazyflieROS::arm, this, _1, _2), get_service_qos(), callback_group_cf_srv);
 
     // Topics
 
     subscription_cmd_vel_legacy_ = node->create_subscription<geometry_msgs::msg::Twist>(name + "/cmd_vel_legacy", rclcpp::SystemDefaultsQoS(), std::bind(&CrazyflieROS::cmd_vel_legacy_changed, this, _1), sub_opt_cf_cmd);
     subscription_cmd_full_state_ = node->create_subscription<crazyflie_interfaces::msg::FullState>(name + "/cmd_full_state", rclcpp::SystemDefaultsQoS(), std::bind(&CrazyflieROS::cmd_full_state_changed, this, _1), sub_opt_cf_cmd);
     subscription_cmd_position_ = node->create_subscription<crazyflie_interfaces::msg::Position>(name + "/cmd_position", rclcpp::SystemDefaultsQoS(), std::bind(&CrazyflieROS::cmd_position_changed, this, _1), sub_opt_cf_cmd);
+    subscription_cmd_hover_ = node->create_subscription<crazyflie_interfaces::msg::Hover>(name + "/cmd_hover", rclcpp::SystemDefaultsQoS(), std::bind(&CrazyflieROS::cmd_hover_changed, this, _1), sub_opt_cf_cmd);
 
     publisher_robot_description_ = node->create_publisher<std_msgs::msg::String>(name + "/robot_description",
       rclcpp::QoS(1).transient_local());
@@ -232,6 +256,15 @@ public:
           size_t start = pattern.size() + 1;
           const auto group_and_name = i.first.substr(start);
           map[group_and_name] = i.second;
+        }
+      }
+    };
+
+    auto update_value = [&parameter_overrides](rclcpp::ParameterValue& value, const std::string& pattern)
+    {
+      for (const auto &i : parameter_overrides) {
+        if (i.first.find(pattern) == 0) {
+          value = i.second;
         }
       }
     };
@@ -338,6 +371,28 @@ public:
       }
     }
 
+    // Reference Frame
+    {
+      rclcpp::ParameterValue reference_frame_value("world");
+
+      // Get logging configuration as specified in the configuration files, as in the following order
+      // 1.) check all/reference_frame
+      // 2.) check robot_types/<type_name>/reference_frame
+      // 3.) check robots/<robot_name>/reference_frame
+      // where the higher order is used if defined on multiple levels.
+      update_value(reference_frame_value, "all.reference_frame");
+      // check robot_types/<type_name>/reference_frame
+      update_value(reference_frame_value, "robot_types." + cf_type + ".reference_frame");
+      // check robots/<robot_name>/reference_frame
+      update_value(reference_frame_value, "robots." + name_ + ".reference_frame");
+
+      // extract reference frame 
+      reference_frame_ = reference_frame_value.get<std::string>();
+     
+      RCLCPP_INFO(logger_, "[%s] ref frame: %s", name_.c_str(), reference_frame_.c_str());
+      
+    }
+
     // Logging
     {
       // <group>.<name> -> value map
@@ -394,6 +449,30 @@ public:
                 {"range", "right"}
               }, cb));
             log_block_scan_->start(uint8_t(100.0f / (float)freq)); // this is in tens of milliseconds
+          }
+          else if (i.first.find("default_topics.odom") == 0) {
+            int freq = log_config_map["default_topics.odom.frequency"].get<int>();
+            RCLCPP_INFO(logger_, "[%s] Logging to /odom at %d Hz", name_.c_str(), freq);
+
+            publisher_odom_ = node->create_publisher<nav_msgs::msg::Odometry>(name + "/odom", 10);
+
+            std::function<void(uint32_t, const logOdom*)> cb = std::bind(&CrazyflieROS::on_logging_odom, this, std::placeholders::_1, std::placeholders::_2);
+
+            log_block_odom_.reset(new LogBlock<logOdom>(
+              &cf_,{
+                {"stateEstimateZ", "x"},
+                {"stateEstimateZ", "y"},
+                {"stateEstimateZ", "z"},
+                {"stateEstimateZ", "quat"},
+                {"stateEstimateZ", "vx"},
+                {"stateEstimateZ", "vy"},
+                {"stateEstimateZ", "vz"},
+                //{"stateEstimateZ", "rateRoll"},
+                //{"stateEstimateZ", "ratePitch"},
+                //{"stateEstimateZ", "rateYaw"}
+              }, cb));
+            log_block_odom_->start(uint8_t(100.0f / (float)freq)); // this is in tens of milliseconds
+            
           }
           else if (i.first.find("default_topics.status") == 0) {
             int freq = log_config_map["default_topics.status.frequency"].get<int>();
@@ -590,6 +669,14 @@ private:
     cf_.sendPositionSetpoint(x, y, z, yaw);
   }
 
+  void cmd_hover_changed(const crazyflie_interfaces::msg::Hover::SharedPtr msg) {
+    float vx = msg->vx;
+    float vy = msg->vy;
+    float yawRate = -1.0 * msg->yaw_rate * 180.0 / M_PI; // Convert from radians to degrees
+    float z = msg->z_distance;
+    cf_.sendHoverSetpoint(vx, vy, yawRate, z);
+  }
+
   void cmd_vel_legacy_changed(const geometry_msgs::msg::Twist::SharedPtr msg)
   {
     float roll = msg->linear.y;
@@ -728,7 +815,7 @@ private:
     if (publisher_pose_) {
       geometry_msgs::msg::PoseStamped msg;
       msg.header.stamp = node_->get_clock()->now();
-      msg.header.frame_id = "world";
+      msg.header.frame_id = reference_frame_;
 
       msg.pose.position.x = data->x;
       msg.pose.position.y = data->y;
@@ -786,6 +873,34 @@ private:
 
       publisher_scan_->publish(msg);
     }
+  }
+
+  void on_logging_odom(uint32_t time_in_ms, const logOdom* data) {
+    if (publisher_odom_) {
+      nav_msgs::msg::Odometry msg;
+      msg.header.stamp = node_->get_clock()->now();
+      msg.header.frame_id = name_;
+      msg.pose.pose.position.x = data->x / 1000.0f;
+      msg.pose.pose.position.y = data->y / 1000.0f;
+      msg.pose.pose.position.z = data->z / 1000.0f;
+
+      float q[4];
+      quatdecompress(data->quatCompressed, q);
+      msg.pose.pose.orientation.x = q[0];
+      msg.pose.pose.orientation.y = q[1];
+      msg.pose.pose.orientation.z = q[2];
+      msg.pose.pose.orientation.w = q[3];
+
+      msg.twist.twist.linear.x = data->vx / 1000.0f;
+      msg.twist.twist.linear.y = data->vy / 1000.0f;
+      msg.twist.twist.linear.z = data->vz / 1000.0f;
+      //msg.twist.twist.angular.x = data->rateRoll / 1000.0f;
+      //msg.twist.twist.angular.y = data->ratePitch / 1000.0f;
+      //msg.twist.twist.angular.z = data->rateYaw / 1000.0f;
+
+      publisher_odom_->publish(msg);
+    }
+
   }
 
   void on_logging_status(uint32_t time_in_ms, const logStatus* data) {
@@ -862,7 +977,7 @@ private:
 
     crazyflie_interfaces::msg::LogDataGeneric msg;
     msg.header.stamp = node_->get_clock()->now();
-    msg.header.frame_id = "world";
+    msg.header.frame_id = reference_frame_;
     msg.timestamp = time_in_ms;
     msg.values = *values;
 
@@ -891,7 +1006,7 @@ private:
     if (publish_stats_) {
       crazyflie_interfaces::msg::ConnectionStatisticsArray msg;
       msg.header.stamp = node_->get_clock()->now();
-      msg.header.frame_id = "world";
+      msg.header.frame_id = reference_frame_;
       msg.stats.resize(1);
 
       msg.stats[0].uri = cf_.uri();
@@ -937,15 +1052,21 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_cmd_vel_legacy_;
   rclcpp::Subscription<crazyflie_interfaces::msg::FullState>::SharedPtr subscription_cmd_full_state_;
   rclcpp::Subscription<crazyflie_interfaces::msg::Position>::SharedPtr subscription_cmd_position_;
+  rclcpp::Subscription<crazyflie_interfaces::msg::Hover>::SharedPtr subscription_cmd_hover_;
 
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_robot_description_;
 
   // logging
+  std::string reference_frame_;
+
   std::unique_ptr<LogBlock<logPose>> log_block_pose_;
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr publisher_pose_;
 
   std::unique_ptr<LogBlock<logScan>> log_block_scan_;
   rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr publisher_scan_;
+
+  std::unique_ptr<LogBlock<logOdom>> log_block_odom_;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr publisher_odom_;
 
   std::unique_ptr<LogBlock<logStatus>> log_block_status_;
   bool status_has_radio_stats_;
@@ -1109,17 +1230,15 @@ public:
     subscription_cmd_full_state_ = this->create_subscription<crazyflie_interfaces::msg::FullState>("all/cmd_full_state", rclcpp::SystemDefaultsQoS(), std::bind(&CrazyflieServer::cmd_full_state_changed, this, _1), sub_opt_all_cmd);
 
     // services for "all"
-    auto service_qos = rmw_qos_profile_services_default;
-
-    service_start_trajectory_ = this->create_service<StartTrajectory>("all/start_trajectory", std::bind(&CrazyflieServer::start_trajectory, this, _1, _2), service_qos, callback_group_all_srv_);
-    service_takeoff_ = this->create_service<Takeoff>("all/takeoff", std::bind(&CrazyflieServer::takeoff, this, _1, _2), service_qos, callback_group_all_srv_);
-    service_land_ = this->create_service<Land>("all/land", std::bind(&CrazyflieServer::land, this, _1, _2), service_qos, callback_group_all_srv_);
-    service_go_to_ = this->create_service<GoTo>("all/go_to", std::bind(&CrazyflieServer::go_to, this, _1, _2), service_qos, callback_group_all_srv_);
-    service_notify_setpoints_stop_ = this->create_service<NotifySetpointsStop>("all/notify_setpoints_stop", std::bind(&CrazyflieServer::notify_setpoints_stop, this, _1, _2), service_qos, callback_group_all_srv_);
-    service_arm_ = this->create_service<Arm>("all/arm", std::bind(&CrazyflieServer::arm, this, _1, _2), service_qos, callback_group_all_srv_);
+    service_start_trajectory_ = this->create_service<StartTrajectory>("all/start_trajectory", std::bind(&CrazyflieServer::start_trajectory, this, _1, _2), get_service_qos(), callback_group_all_srv_);
+    service_takeoff_ = this->create_service<Takeoff>("all/takeoff", std::bind(&CrazyflieServer::takeoff, this, _1, _2), get_service_qos(), callback_group_all_srv_);
+    service_land_ = this->create_service<Land>("all/land", std::bind(&CrazyflieServer::land, this, _1, _2), get_service_qos(), callback_group_all_srv_);
+    service_go_to_ = this->create_service<GoTo>("all/go_to", std::bind(&CrazyflieServer::go_to, this, _1, _2), get_service_qos(), callback_group_all_srv_);
+    service_notify_setpoints_stop_ = this->create_service<NotifySetpointsStop>("all/notify_setpoints_stop", std::bind(&CrazyflieServer::notify_setpoints_stop, this, _1, _2), get_service_qos(), callback_group_all_srv_);
+    service_arm_ = this->create_service<Arm>("all/arm", std::bind(&CrazyflieServer::arm, this, _1, _2), get_service_qos(), callback_group_all_srv_);
 
     // This is the last service to announce and can be used to check if the server is fully available
-    service_emergency_ = this->create_service<Empty>("all/emergency", std::bind(&CrazyflieServer::emergency, this, _1, _2), service_qos, callback_group_all_srv_);
+    service_emergency_ = this->create_service<Empty>("all/emergency", std::bind(&CrazyflieServer::emergency, this, _1, _2), get_service_qos(), callback_group_all_srv_);
   }
 
 
@@ -1420,7 +1539,7 @@ private:
 
       crazyflie_interfaces::msg::ConnectionStatisticsArray msg;
       msg.header.stamp = this->get_clock()->now();
-      msg.header.frame_id = "world";
+      msg.header.frame_id = "world"; // this is across broadcasters, which is not directly associated with single CFs; hence keep "world" here
       msg.stats.resize(broadcaster_.size());
 
       size_t i = 0;
