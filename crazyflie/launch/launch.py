@@ -122,7 +122,7 @@ def generate_launch_description():
         DeclareLaunchArgument('debug', default_value='False'),
         DeclareLaunchArgument('rviz', default_value='False'),
         DeclareLaunchArgument('gui', default_value='False'),
-        DeclareLaunchArgument('qgc', default_value='True'),
+        DeclareLaunchArgument('qgc', default_value='False'),
         DeclareLaunchArgument('teleop', default_value='False'),
         DeclareLaunchArgument('mocap', default_value='True'),
         DeclareLaunchArgument('teleop_yaml_file', default_value=''),
