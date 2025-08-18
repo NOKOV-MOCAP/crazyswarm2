@@ -45,6 +45,8 @@ using crazyflie_interfaces::msg::FullState;
 
 #ifdef ROS_DISTRO_HUMBLE
 inline auto get_service_qos() { return rmw_qos_profile_services_default; }
+#elif ROS_DISTRO_GALACTIC
+inline auto get_service_qos() { return rmw_qos_profile_services_default; }
 #else
 inline auto get_service_qos() { return rclcpp::ServicesQoS(); }
 #endif

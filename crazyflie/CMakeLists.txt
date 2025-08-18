@@ -60,6 +60,8 @@ target_link_libraries(crazyflie_server
 
 if("${ROS_DISTRO_VALUE}" STREQUAL "humble")
   target_compile_definitions(crazyflie_server PRIVATE ROS_DISTRO_HUMBLE)
+elseif("${ROS_DISTRO_VALUE}" STREQUAL "galactic")
+  target_compile_definitions(crazyflie_server PRIVATE ROS_DISTRO_GALACTIC)
 endif()
 
 ament_target_dependencies(crazyflie_server
