@@ -62,8 +62,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Crazyswarm2'
-copyright = '2021-2024, Wolfgang Hönig (TU Berlin), Kimberly McGuire (Bitcraze AB), and contributors'
-author = 'Wolfgang Hönig, Kimberly McGuire'
+copyright = '2021-2025, Wolfgang Hönig (TU Berlin), Kimberly N. McGuire (Independent), and contributors'
+author = 'Wolfgang Hönig, Kimberly N. McGuire'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

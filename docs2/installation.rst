@@ -5,13 +5,13 @@ Installation
 
 Crazyswarm2 runs on **Ubuntu Linux** in one of the following configurations:
 
-====== ======== ============
+====== ======== ====== 
 Ubuntu Python   ROS 2
------- -------- ------------
-22.04  3.10     Humble, Iron
------- -------- ------------
+------ -------- ------
+22.04  3.10     Humble
+------ -------- ------
 24.04  3.12     Jazzy
-====== ======== ============
+====== ======== ======
 
 .. warning::
    The `Windows Subsystem for Linux (WSL) <https://docs.microsoft.com/en-us/windows/wsl/about>`_ is experimentally supported but you'll have to use `usbipd-win <https://github.com/dorssel/usbipd-win/>`_.
@@ -85,11 +85,11 @@ First Installation
 
 7. Set up software-in-the-loop simulation (optional)
 
-    This currently requires cloning the Crazyflie firmware and building the Python bindings manually. In a separate folder (not part of your ROS 2 workspace!), 
+    This currently requires cloning the Crazyflie firmware of the latest tested release (2025.02) and building the Python bindings manually. In a separate folder (not part of your ROS 2 workspace!), 
 
     .. code-block:: bash
 
-        git clone --recursive https://github.com/bitcraze/crazyflie-firmware.git
+        git clone --branch 2025.02 --single-branch --recursive https://github.com/bitcraze/crazyflie-firmware.git
 
     First follow `the instructions to build the python bindings <https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/building-and-flashing/build/#build-python-bindings>`_ from the bitcraze website. Afterwards, make sure that the bindings can be found in the python path:
 
