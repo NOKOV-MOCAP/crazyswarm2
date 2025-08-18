@@ -2,9 +2,14 @@
 fileversion: 3
 
 robots:
-  cf231:
+  cf2:
     enabled: true
-    uri: radio://0/80/2M/E7E7E7E7E7
+    uri: radio://0/90/2M/E7E7E7E702
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21_mocap_deck
+  cf4:
+    enabled: true
+    uri: radio://0/90/2M/E7E7E7E704
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
     # firmware_params:
@@ -43,8 +48,8 @@ robot_types:
       dynamics: default
     big_quad: false
     battery:
-      voltage_warning: 3.8  # V
-      voltage_critical: 3.7 # V
+      voltage_warning: 3.8       # V
+      voltage_critical: 3.7       # V
     # firmware_params:
     #   kalman:
     #     pNAcc_xy: 1.0 # default 0.5
@@ -92,9 +97,9 @@ all:
     default_topics:
      # remove to disable default topic
       pose:
-        frequency: 10 # Hz
+        frequency: 10         # Hz
       status:
-        frequency: 1 # Hz
+        frequency: 1         # Hz
     #custom_topics:
     #  topic_name1:
     #    frequency: 10 # Hz
@@ -108,8 +113,8 @@ all:
     commander:
       enHighLevel: 1
     stabilizer:
-      estimator: 2 # 1: complementary, 2: kalman
-      controller: 2 # 1: PID, 2: mellinger
+      estimator: 2       # 1: complementary, 2: kalman
+      controller: 2       # 1: PID, 2: mellinger
     # ring:
     #   effect: 16 # 6: double spinner, 7: solid color, 16: packetRate
     #   solidBlue: 255 # if set to solid color
@@ -125,5 +130,5 @@ all:
   # robots/drone_name to set per drone)
   reference_frame: "world"
   broadcasts:
-    num_repeats: 15 # number of times broadcast commands are repeated
-    delay_between_repeats_ms: 1 # delay in milliseconds between individual repeats
+    num_repeats: 15     # number of times broadcast commands are repeated
+    delay_between_repeats_ms: 1     # delay in milliseconds between individual repeats
