@@ -127,9 +127,9 @@ def generate_launch_description():
         DeclareLaunchArgument('backend', default_value='cpp'),
         DeclareLaunchArgument('debug', default_value='False'),
         DeclareLaunchArgument('rviz', default_value='False'),
-        DeclareLaunchArgument('gui', default_value='True'),
+        DeclareLaunchArgument('gui', default_value='False'),
         DeclareLaunchArgument('qgc', default_value='True'),
-        DeclareLaunchArgument('teleop', default_value='True'),
+        DeclareLaunchArgument('teleop', default_value='False'),
         DeclareLaunchArgument('mocap', default_value='True'),
         DeclareLaunchArgument('teleop_yaml_file', default_value=''),
         OpaqueFunction(function=parse_yaml),
@@ -182,7 +182,8 @@ def generate_launch_description():
             package='nokov_swarm',
             namespace='',
             executable='nokov_swarm_node',
-            name='qgc'
-            
+            name='qgc',
+            emulate_tty=True,  # 强制终端关联，确保信号传递
+            output='screen'
         ),
     ])

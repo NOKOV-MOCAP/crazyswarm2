@@ -1,0 +1,5 @@
+string name
+string uri
+string cf_type
+bool connect
+---

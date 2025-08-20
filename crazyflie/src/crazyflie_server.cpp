@@ -13,6 +13,7 @@
 #include "crazyflie_interfaces/srv/go_to.hpp"
 #include "crazyflie_interfaces/srv/notify_setpoints_stop.hpp"
 #include "crazyflie_interfaces/srv/arm.hpp"
+#include "crazyflie_interfaces/srv/connect_drone.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -39,6 +40,7 @@ using crazyflie_interfaces::srv::UploadTrajectory;
 using crazyflie_interfaces::srv::NotifySetpointsStop;
 using crazyflie_interfaces::srv::Arm;
 using std_srvs::srv::Empty;
+using crazyflie_interfaces::srv::ConnectDrone;
 
 using motion_capture_tracking_interfaces::msg::NamedPoseArray;
 using crazyflie_interfaces::msg::FullState;
@@ -245,7 +247,12 @@ public:
     auto declare_param = [&parameter_overrides, node](const std::string& param)
     {
       // rclcpp::ParameterValue value(parameter_overridesparam]);
-      node->declare_parameter(param, parameter_overrides.at(param));
+      if (!node->has_parameter(param)) {
+          node->declare_parameter(param, parameter_overrides.at(param));
+      } else {
+          // 如果已存在，直接更新值（避免重复声明）
+          node->set_parameter(rclcpp::Parameter(param, parameter_overrides.at(param)));
+      }
     };
     declare_param("robots." + name + ".uri");
     declare_param("robots." + name + ".initial_position");
@@ -271,106 +278,159 @@ public:
       }
     };
 
-    if (enable_parameters) {
-      bool query_all_values_on_connect = node->get_parameter("firmware_params.query_all_values_on_connect").get_parameter_value().get<bool>();
+     if (enable_parameters) {
+        bool query_all_values_on_connect = node->get_parameter("firmware_params.query_all_values_on_connect").get_parameter_value().get<bool>();
 
-      int numParams = 0;
-      RCLCPP_INFO(logger_, "[%s] Requesting parameters...", name_.c_str());
-      cf_.requestParamToc(/*forceNoCache*/false, /*requestValues*/query_all_values_on_connect);
-      for (auto iter = cf_.paramsBegin(); iter != cf_.paramsEnd(); ++iter) {
-        auto entry = *iter;
-        std::string paramName = name + ".params." + entry.group + "." + entry.name;
-        switch (entry.type)
-        {
-        case Crazyflie::ParamTypeUint8:
-          if (query_all_values_on_connect) {
-            node->declare_parameter(paramName, cf_.getParam<uint8_t>(entry.id));
-          } else {
-            node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
-          }
-          break;
-        case Crazyflie::ParamTypeInt8:
-          if (query_all_values_on_connect) {
-            node->declare_parameter(paramName, cf_.getParam<int8_t>(entry.id));
-          } else {
-            node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
-          }
-          break;
-        case Crazyflie::ParamTypeUint16:
-          if (query_all_values_on_connect) {
-            node->declare_parameter(paramName, cf_.getParam<uint16_t>(entry.id));
-          } else {
-            node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
-          }
-          break;
-        case Crazyflie::ParamTypeInt16:
-          if (query_all_values_on_connect) {
-            node->declare_parameter(paramName, cf_.getParam<int16_t>(entry.id));
-          } else {
-            node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
-          }
-          break;
-        case Crazyflie::ParamTypeUint32:
-          if (query_all_values_on_connect) {
-            node->declare_parameter<int64_t>(paramName, cf_.getParam<uint32_t>(entry.id));
-          } else {
-            node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
-          }
-          break;
-        case Crazyflie::ParamTypeInt32:
-          if (query_all_values_on_connect) {
-            node->declare_parameter(paramName, cf_.getParam<int32_t>(entry.id));
-          } else {
-            node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
-          }
-          break;
-        case Crazyflie::ParamTypeFloat:
-          if (query_all_values_on_connect) {
-            node->declare_parameter(paramName, cf_.getParam<float>(entry.id));
-          } else {
-            node->declare_parameter(paramName, rclcpp::PARAMETER_DOUBLE);
-          }
-          break;
-        default:
-          RCLCPP_WARN(logger_, "[%s] Unknown param type for %s/%s", name_.c_str(), entry.group.c_str(), entry.name.c_str());
-          break;
+        int numParams = 0;
+        RCLCPP_INFO(logger_, "[%s] Requesting parameters...", name_.c_str());
+        cf_.requestParamToc(/*forceNoCache*/false, /*requestValues*/query_all_values_on_connect);
+        for (auto iter = cf_.paramsBegin(); iter != cf_.paramsEnd(); ++iter) {
+            auto entry = *iter;
+            std::string paramName = name + ".params." + entry.group + "." + entry.name;
+
+            switch (entry.type)
+            {
+              case Crazyflie::ParamTypeUint8:
+                  if (node->has_parameter(paramName)) {
+                      // 参数已存在：直接更新值
+                      if (query_all_values_on_connect) {
+                          node->set_parameter(rclcpp::Parameter(paramName, cf_.getParam<uint8_t>(entry.id)));
+                      }
+                  } else {
+                      // 参数不存在：声明
+                      if (query_all_values_on_connect) {
+                          node->declare_parameter(paramName, cf_.getParam<uint8_t>(entry.id));
+                      } else {
+                          node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
+                      }
+                  }
+                  break;
+              
+              case Crazyflie::ParamTypeInt8:
+                  if (node->has_parameter(paramName)) {
+                      if (query_all_values_on_connect) {
+                          node->set_parameter(rclcpp::Parameter(paramName, cf_.getParam<int8_t>(entry.id)));
+                      }
+                  } else {
+                      if (query_all_values_on_connect) {
+                          node->declare_parameter(paramName, cf_.getParam<int8_t>(entry.id));
+                      } else {
+                          node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
+                      }
+                  }
+                  break;
+              
+              case Crazyflie::ParamTypeUint16:
+                  if (node->has_parameter(paramName)) {
+                      if (query_all_values_on_connect) {
+                          node->set_parameter(rclcpp::Parameter(paramName, cf_.getParam<uint16_t>(entry.id)));
+                      }
+                  } else {
+                      if (query_all_values_on_connect) {
+                          node->declare_parameter(paramName, cf_.getParam<uint16_t>(entry.id));
+                      } else {
+                          node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
+                      }
+                  }
+                  break;
+              
+              case Crazyflie::ParamTypeInt16:
+                  if (node->has_parameter(paramName)) {
+                      if (query_all_values_on_connect) {
+                          node->set_parameter(rclcpp::Parameter(paramName, cf_.getParam<int16_t>(entry.id)));
+                      }
+                  } else {
+                      if (query_all_values_on_connect) {
+                          node->declare_parameter(paramName, cf_.getParam<int16_t>(entry.id));
+                      } else {
+                          node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
+                      }
+                  }
+                  break;
+              
+              case Crazyflie::ParamTypeUint32:
+                  if (node->has_parameter(paramName)) {
+                      if (query_all_values_on_connect) {
+                          // 显式指定类型为int64_t，避免类型不匹配
+                          node->set_parameter(rclcpp::Parameter(paramName, static_cast<int64_t>(cf_.getParam<uint32_t>(entry.id))));
+                      }
+                  } else {
+                      if (query_all_values_on_connect) {
+                          node->declare_parameter<int64_t>(paramName, cf_.getParam<uint32_t>(entry.id));
+                      } else {
+                          node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
+                      }
+                  }
+                  break;
+              
+              case Crazyflie::ParamTypeInt32:
+                  if (node->has_parameter(paramName)) {
+                      if (query_all_values_on_connect) {
+                          node->set_parameter(rclcpp::Parameter(paramName, cf_.getParam<int32_t>(entry.id)));
+                      }
+                  } else {
+                      if (query_all_values_on_connect) {
+                          node->declare_parameter(paramName, cf_.getParam<int32_t>(entry.id));
+                      } else {
+                          node->declare_parameter(paramName, rclcpp::PARAMETER_INTEGER);
+                      }
+                  }
+                  break;
+              
+              case Crazyflie::ParamTypeFloat:
+                  if (node->has_parameter(paramName)) {
+                      if (query_all_values_on_connect) {
+                          node->set_parameter(rclcpp::Parameter(paramName, cf_.getParam<float>(entry.id)));
+                      }
+                  } else {
+                      if (query_all_values_on_connect) {
+                          node->declare_parameter(paramName, cf_.getParam<float>(entry.id));
+                      } else {
+                          node->declare_parameter(paramName, rclcpp::PARAMETER_DOUBLE);
+                      }
+                  }
+                  break;
+              
+              default:
+                  RCLCPP_WARN(logger_, "[%s] Unknown param type for %s/%s", name_.c_str(), entry.group.c_str(), entry.name.c_str());
+                  break;
+            }
+
+            // 处理全局参数 "all.params.xxx"
+            std::string allParamName = "all.params." + entry.group + "." + entry.name;
+            if (node->has_parameter(allParamName)) {
+                // 全局参数已存在：无需重复声明
+            } else {
+                // 全局参数不存在：声明
+                if (entry.type == Crazyflie::ParamTypeFloat) {
+                    node->declare_parameter(allParamName, rclcpp::PARAMETER_DOUBLE);
+                } else {
+                    node->declare_parameter(allParamName, rclcpp::PARAMETER_INTEGER);
+                }
+            }
+
+            ++numParams;
         }
-        // If there is no such parameter in all, add it
-        std::string allParamName = "all.params." + entry.group + "." + entry.name;
-        if (!node->has_parameter(allParamName)) {
-          if (entry.type == Crazyflie::ParamTypeFloat) {
-            node->declare_parameter(allParamName, rclcpp::PARAMETER_DOUBLE);
-          } else {
-            node->declare_parameter(allParamName, rclcpp::PARAMETER_INTEGER);
-          }
+
+        auto end1 = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsedSeconds1 = end1 - start;
+        RCLCPP_INFO(logger_, "[%s] reqParamTOC: %f s (%d params)", name_.c_str(), elapsedSeconds1.count(), numParams);
+        
+        // 处理配置文件参数（all -> robot_types -> robots 优先级）
+        std::map<std::string, rclcpp::ParameterValue> set_param_map;
+
+        // 从配置文件更新参数映射（按优先级覆盖）
+        update_map(set_param_map, "all.firmware_params");
+        update_map(set_param_map, "robot_types." + cf_type + ".firmware_params");
+        update_map(set_param_map, "robots." + name_ + ".firmware_params");
+
+        // 应用配置文件参数：拼接正确参数名，直接更新（参数已在前面声明为动态类型）
+        for (const auto& i : set_param_map) {
+            // 修复：移除无效的regex_replace（原代码中替换“.”为“.”无意义，导致参数名错误）
+            std::string paramName = name + ".params." + i.first;
+            // 直接调用change_parameter更新（前提：参数已声明为动态类型）
+            change_parameter(rclcpp::Parameter(paramName, i.second));
         }
-        ++numParams;
-      }
-      auto end1 = std::chrono::system_clock::now();
-      std::chrono::duration<double> elapsedSeconds1 = end1 - start;
-      RCLCPP_INFO(logger_, "[%s] reqParamTOC: %f s (%d params)", name_.c_str(), elapsedSeconds1.count(), numParams);
-      
-      // Set parameters as specified in the configuration files, as in the following order
-      // 1.) check all/firmware_params
-      // 2.) check robot_types/<type_name>/firmware_params
-      // 3.) check robots/<robot_name>/firmware_params
-      // where the higher order is used if defined on multiple levels.
-
-      // <group>.<name> -> value map
-      std::map<std::string, rclcpp::ParameterValue> set_param_map;
-
-      // check global settings/firmware_params
-      update_map(set_param_map, "all.firmware_params");
-      // check robot_types/<type_name>/firmware_params
-      update_map(set_param_map, "robot_types." + cf_type + ".firmware_params");
-      // check robots/<robot_name>/firmware_params
-      update_map(set_param_map, "robots." + name_ + ".firmware_params");
-
-      // Update parameters
-      for (const auto&i : set_param_map) {
-        std::string paramName = name + ".params." + std::regex_replace(i.first, std::regex("\\."), ".");
-        change_parameter(rclcpp::Parameter(paramName, i.second));
-      }
     }
 
     // Reference Frame
@@ -1241,10 +1301,58 @@ public:
 
     // This is the last service to announce and can be used to check if the server is fully available
     service_emergency_ = this->create_service<Empty>("all/emergency", std::bind(&CrazyflieServer::emergency, this, _1, _2), get_service_qos(), callback_group_all_srv_);
+
+    service_add_crazyflie_ = this->create_service<ConnectDrone>("connect_crazyflie", std::bind(&CrazyflieServer::connect_crazyflie, this, _1, _2), get_service_qos(), callback_group_all_srv_);
   }
 
-
 private:
+  void connect_crazyflie(const std::shared_ptr<ConnectDrone::Request> request,
+            std::shared_ptr<ConnectDrone::Response> response){
+    std::string name = request->name;
+    std::string uri = request->uri;
+    std::string cf_type = request->cf_type;
+    bool connect = request->connect;
+    if(connect) {
+      auto broadcastUri = Crazyflie::broadcastUriFromUnicastUri(uri);
+      if (broadcaster_.count(broadcastUri) == 0) {
+          broadcaster_.emplace(broadcastUri, std::make_unique<CrazyflieBroadcaster>(broadcastUri));
+      }
+      crazyflies_.emplace(name, std::make_unique<CrazyflieROS>(
+              uri,
+              cf_type,
+              name,
+              this,
+              callback_group_cf_cmd_,
+              callback_group_cf_srv_,
+              broadcaster_.at(broadcastUri).get()));
+
+      update_name_to_id_map(name, crazyflies_[name]->id());
+    } else {
+        if (crazyflies_.count(name) > 0) {
+            // 如果该广播 URI 不再有其他无人机使用，清理 broadcaster_
+            bool is_broadcastUri_used = false;
+            for (const auto& cf : crazyflies_) {
+                if (cf.first == name) {
+                    continue; 
+                }
+                if (cf.second->broadcastUri() == crazyflies_[name]->broadcastUri()) {
+                    RCLCPP_INFO(logger_, "Broadcast URI %s is still used by another Crazyflie", cf.second->broadcastUri().c_str());
+                    is_broadcastUri_used = true;
+                    break;
+                }
+            }
+            //清理 ROS2（Publisher/Subscriber/Service）
+            crazyflies_[name].reset(); 
+            crazyflies_.erase(name);
+            name_to_id_.erase(name);
+            if (!is_broadcastUri_used) {
+                broadcaster_.erase(Crazyflie::broadcastUriFromUnicastUri(uri));
+            }
+            RCLCPP_INFO(logger_, "成功断开无人机: %s", name.c_str());
+        }
+    }
+  }
+
   void emergency(const std::shared_ptr<Empty::Request> request,
             std::shared_ptr<Empty::Response> response)
   {
@@ -1602,6 +1710,7 @@ private:
     rclcpp::Service<GoTo>::SharedPtr service_go_to_;
     rclcpp::Service<NotifySetpointsStop>::SharedPtr service_notify_setpoints_stop_;
     rclcpp::Service<Arm>::SharedPtr service_arm_;
+    rclcpp::Service<ConnectDrone>::SharedPtr service_add_crazyflie_;
 
     std::map<std::string, std::unique_ptr<CrazyflieROS>> crazyflies_;
 
