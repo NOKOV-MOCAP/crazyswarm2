@@ -2,11 +2,42 @@ import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetEnvironmentVariable
 from launch_ros.actions import Node
 from launch.conditions import LaunchConfigurationEquals
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
+from pathlib import Path
+
+def extract_dds_config(context) -> list:
+    """
+    从配置文件提取DDS配置，生成全局环境变量动作（所有节点自动继承）
+    :param context: Launch上下文（用于获取配置文件路径）
+    :return: DDS环境变量设置动作列表
+    """
+    #获取配置文件路径（支持通过launch参数传入，默认使用crazyswarm2_config.yaml）
+    
+    config_path = LaunchConfiguration('dds_config_file').perform(context)
+    if not Path(config_path).exists():
+        raise FileNotFoundError(f"DDS配置文件不存在: {config_path}")
+    
+    #加载YAML，提取/crazyflie_server下的dds字段（与原有配置结构对齐）
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    dds_config = config.get('/crazyflie_server', {}).get('dds', {})
+    
+    # 设置DDS默认值（防止配置缺失）
+    default_dds = {
+        'rmw_implementation': 'rmw_cyclonedds_cpp',  # 默认CycloneDDS
+        'domain_id': 0                               # 默认域ID
+    }
+    # 合并配置（用户配置覆盖默认值）
+    merged_dds = {**default_dds, **dds_config}
+    
+    return [
+        SetEnvironmentVariable('RMW_IMPLEMENTATION', merged_dds['rmw_implementation']),
+        SetEnvironmentVariable('ROS_DOMAIN_ID', str(merged_dds['domain_id']))
+    ]
 
 def parse_yaml(context):
     # Load the crazyflies YAML file
@@ -84,7 +115,7 @@ def parse_yaml(context):
             name='crazyflie_server',
             output='screen',
             parameters= server_params,
-            prefix=PythonExpression(['"xterm -e gdb -ex run --args" if ', LaunchConfiguration('debug'), ' else ""']),
+            prefix=PythonExpression(['"gdbserver localhost:13000" if ', LaunchConfiguration('debug'), ' else ""']),
         ),
         Node(
             package='crazyflie_sim',
@@ -95,6 +126,13 @@ def parse_yaml(context):
             emulate_tty=True,
             parameters= server_params,
         )]
+
+
+def launch_main(context):
+    dds_actions = extract_dds_config(context)
+    parse_yaml_nodes = parse_yaml(context)
+    return dds_actions + parse_yaml_nodes
+
 
 def generate_launch_description():
     default_crazyflies_yaml_path = os.path.join(
@@ -117,7 +155,15 @@ def generate_launch_description():
         'config',
         'teleop.yaml')
     
+    
+    default_dds_config_path = os.path.join(
+        get_package_share_directory('crazyflie'),  # 若配置在其他包，修改为对应包名
+        'config',
+        'server.yaml'  # 你的DDS配置文件路径
+    )
+    
     return LaunchDescription([
+        # 原有参数声明（完全保留）
         DeclareLaunchArgument('crazyflies_yaml_file', 
                               default_value=default_crazyflies_yaml_path),
         DeclareLaunchArgument('motion_capture_yaml_file', 
@@ -128,11 +174,18 @@ def generate_launch_description():
         DeclareLaunchArgument('debug', default_value='False'),
         DeclareLaunchArgument('rviz', default_value='False'),
         DeclareLaunchArgument('gui', default_value='False'),
-        DeclareLaunchArgument('qgc', default_value='True'),
+        DeclareLaunchArgument('qgc', default_value='False'),
         DeclareLaunchArgument('teleop', default_value='False'),
         DeclareLaunchArgument('mocap', default_value='True'),
         DeclareLaunchArgument('teleop_yaml_file', default_value=''),
-        OpaqueFunction(function=parse_yaml),
+        
+        DeclareLaunchArgument('dds_config_file',
+                              default_value=default_dds_config_path,
+                              description='DDS配置文件路径（含rmw_implementation和domain_id）'),
+        
+        #用launch_main整合DDS与原有节点
+        OpaqueFunction(function=launch_main),
+        
         Node(
             condition=LaunchConfigurationEquals('teleop', 'True'),
             package='crazyflie',
@@ -143,10 +196,6 @@ def generate_launch_description():
                 ('arm', 'all/arm'),
                 ('takeoff', 'all/takeoff'),
                 ('land', 'all/land'),
-                # uncomment to manually control (and update teleop.yaml)
-                # ('cmd_vel_legacy', 'cf6/cmd_vel_legacy'),
-                # ('cmd_full_state', 'cf6/cmd_full_state'),
-                # ('notify_setpoints_stop', 'cf6/notify_setpoints_stop'),
             ],
             parameters= [PythonExpression(["'" + telop_yaml_path +"' if '", LaunchConfiguration('teleop_yaml_file'), "' == '' else '", LaunchConfiguration('teleop_yaml_file'), "'"])],
         ),
@@ -154,7 +203,7 @@ def generate_launch_description():
             condition=LaunchConfigurationEquals('teleop', 'True'),
             package='joy',
             executable='joy_node',
-            name='joy_node' # by default id=0
+            name='joy_node'
         ),
         Node(
             condition=LaunchConfigurationEquals('rviz', 'True'),
@@ -183,7 +232,7 @@ def generate_launch_description():
             namespace='',
             executable='nokov_swarm_node',
             name='qgc',
-            emulate_tty=True,  # 强制终端关联，确保信号传递
+            emulate_tty=True,
             output='screen'
         ),
     ])

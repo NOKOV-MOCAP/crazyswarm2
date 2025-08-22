@@ -4,11 +4,11 @@ fileversion: 3
 robots:
   cf2:
     enabled: true
-    uri: radio://0/90/2M/E7E7E7E702
+    uri: radio://0/85/2M/E7E7E7E706
     initial_position: [0.0, 0.0, 0.0]
     type: cf21_mocap_deck
   cf4:
-    enabled: true
+    enabled: false
     uri: radio://0/90/2M/E7E7E7E704
     initial_position: [0.0, 0.0, 0.0]
     type: cf21  # see robot_types
@@ -66,7 +66,7 @@ robot_types:
 
   cf21_mocap_deck:
     motion_capture:
-      tracking: "librigidbodytracker" # one of "vendor", "librigidbodytracker"
+      tracking: "nokov" # one of "vendor", "librigidbodytracker"
       # only if enabled; see motion_capture.yaml
       marker: mocap_deck
       dynamics: default
@@ -114,7 +114,7 @@ all:
       enHighLevel: 1
     stabilizer:
       estimator: 2       # 1: complementary, 2: kalman
-      controller: 2       # 1: PID, 2: mellinger
+      controller: 1       # 1: PID, 2: mellinger
     # ring:
     #   effect: 16 # 6: double spinner, 7: solid color, 16: packetRate
     #   solidBlue: 255 # if set to solid color

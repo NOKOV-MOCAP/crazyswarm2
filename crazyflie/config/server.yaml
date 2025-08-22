@@ -11,7 +11,7 @@
         min_broadcast_receive_rate: 0.9 # requires status topic to be enabled
         publish_stats: false
     firmware_params:
-      query_all_values_on_connect: False
+      query_all_values_on_connect: false
     # simulation related
     sim:
       max_dt: 0 #0.1              # artificially limit the step() function (set to 0 to disable)
@@ -34,10 +34,55 @@
           cf_cameras:      # names of crazyflies with cameras on them if enabled in `crazyflies.yaml`
             cf231:
               calibration:
-                tvec: [0,0,0]
-                rvec: [1.2092,-1.2092,1.2092]   # 0 deg tilt (cameras looks in front of crazyflie)
+                tvec: [0, 0, 0]
+                rvec: [1.2092, -1.2092, 1.2092] # 0 deg tilt (cameras looks in front of crazyflie)
             cf5:
               calibration:
-                tvec: [0,0,0]
-                rvec: [ 0.61394313, -0.61394313,  1.48218982]   # 45 deg tilt
+                tvec: [0, 0, 0]
+                rvec: [0.61394313, -0.61394313, 1.48218982]     # 45 deg tilt
       controller: mellinger # none, pid, mellinger
+  qos:
+      # 可靠性策略：保证消息传递的方式
+      #   best_effort: 尽力而为，可能丢失消息，但延迟更低
+      #   reliable:     可靠传输，保证消息送达，可能重传
+    reliability: "reliable"    # 可选值: "best_effort", "reliable"
+
+      # 持久性策略：决定晚加入的订阅者是否能收到历史消息
+      #   volatile:         新订阅者收不到任何历史消息
+      #   transient_local:  新订阅者能收到发布者最后发布的N个消息（N由depth决定）
+    durability: "volatile"        # 可选值: "volatile", "transient_local"
+
+      # 历史策略：当队列满时如何处理新消息
+      #   keep_last: 只保留最近的N个消息（N由depth决定）
+      #   keep_all:  保留所有消息（需要足够内存，慎用）
+    history: "keep_last"          # 可选值: "keep_last", "keep_all"
+
+      # 队列深度：当history为keep_last时，定义队列缓冲区大小
+      #   推荐值: 实时控制(1-10), 传感器数据(10-100), 大容量数据(100+)
+    depth: 10                     # 整数值，仅当history="keep_last"时生效
+
+      # 期限（毫秒）：期望消息发布的最大时间间隔
+      #   0: 无期限要求
+      #   >0: 设置具体期限，超时会触发违约通知
+    deadline: 0                   # 毫秒，0表示无限制
+
+      # 生存时间（毫秒）：消息在系统中的最大有效时长
+      #   0: 永不过期
+      #   >0: 过期消息会被自动丢弃，即使仍在队列中
+    lifespan: 0                   # 毫秒，0表示无限制
+
+      # 活跃度策略：节点如何声明自己存活
+      #   automatic:       由系统自动管理（默认）
+      #   manual_by_topic: 需要节点显式发布活跃度声明
+    liveliness: "system_default"       # 可选值: "automatic", "manual_by_topic", "system_default"
+
+      # 活跃度租约期限（毫秒）：等待活跃度声明的最大时间
+      #   超时则认为节点失效
+    liveliness_lease_duration: 0    # 毫秒
+
+      # 是否避免ROS命名空间约定（高级配置）
+    avoid_ros_namespace_conventions: false    # 布尔值: true, false
+  dds:
+    rmw_implementation: "rmw_connextdds"    # 可选：rmw_cyclonedds_cpp/rmw_fastrtps_cpp/rmw_connextdds/rmw_gurumdds_cpp
+    domain_id: 1                  # DDS域ID
+
