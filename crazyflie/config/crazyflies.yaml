@@ -2,9 +2,9 @@
 fileversion: 3
 
 robots:
-  cf2:
+  cf9:
     enabled: true
-    uri: radio://0/85/2M/E7E7E7E706
+    uri: radio://0/85/2M/E7E7E7E709
     initial_position: [0.0, 0.0, 0.0]
     type: cf21_mocap_deck
   cf4:

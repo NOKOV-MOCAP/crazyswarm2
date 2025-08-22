@@ -83,6 +83,6 @@
       # 是否避免ROS命名空间约定（高级配置）
     avoid_ros_namespace_conventions: false    # 布尔值: true, false
   dds:
-    rmw_implementation: "rmw_connextdds"    # 可选：rmw_cyclonedds_cpp/rmw_fastrtps_cpp/rmw_connextdds/rmw_gurumdds_cpp
+    rmw_implementation: "rmw_fastrtps_cpp"    # 可选：rmw_cyclonedds_cpp/rmw_fastrtps_cpp/rmw_connextdds/rmw_gurumdds_cpp
     domain_id: 1                  # DDS域ID
 
