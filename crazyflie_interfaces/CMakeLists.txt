@@ -40,6 +40,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RemoveLogging.srv"
   "srv/AddLogging.srv"
   "srv/Arm.srv"
+  "srv/ConnectDrone.srv"
   DEPENDENCIES builtin_interfaces geometry_msgs std_msgs 
   ADD_LINTER_TESTS
 )

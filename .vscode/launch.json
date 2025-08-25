@@ -1,0 +1,65 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug launch.py",
+            "request": "debug_launch",
+            "target": "${workspaceFolder}/crazyflie/launch/launch.py",
+            "type": "ros"
+        },
+        {
+            "name": "Debug Ros2 Node",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/install/crazyflie/lib/crazyflie/crazyflie_server",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            //"preLaunchTask": "launch_crazyflie",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "miDebuggerServerAddress": "localhost:13000",
+        },
+        {
+            "name": "Attach to Ros2 Node",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/install/crazyflie/lib/crazyflie/crazyflie_server",
+            // "processName":"crazyflie_server",
+            // "processName":"launch_crazyflie",
+            "processId": "${command:pickProcess}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // "processId": "${command::ros2}${input:FindAttachPID}",
+        }
+    ],
+    "inputs": [
+        {
+          "id": "FindAttachPID",
+          "type": "command",
+          "command": "workbench.action.terminal.sendSequence",
+          "args": {
+            "text": "pgrep crazyflie\n",
+            // "command": "pgrep 'crazyflie'",
+            "description": "Select your Process PID",
+            "useFirstResult": true,
+          }
+        }
+    ]
+}
