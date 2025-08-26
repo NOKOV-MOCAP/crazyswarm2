@@ -10,28 +10,17 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 from pathlib import Path
 
 def extract_dds_config(context) -> list:
-    """
-    从配置文件提取DDS配置，生成全局环境变量动作（所有节点自动继承）
-    :param context: Launch上下文（用于获取配置文件路径）
-    :return: DDS环境变量设置动作列表
-    """
-    #获取配置文件路径（支持通过launch参数传入，默认使用crazyswarm2_config.yaml）
-    
     config_path = LaunchConfiguration('dds_config_file').perform(context)
     if not Path(config_path).exists():
-        raise FileNotFoundError(f"DDS配置文件不存在: {config_path}")
-    
-    #加载YAML，提取/crazyflie_server下的dds字段（与原有配置结构对齐）
+        raise FileNotFoundError(f"DDS configuration file does not exist: {config_path}")
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
     dds_config = config.get('/crazyflie_server', {}).get('dds', {})
     
-    # 设置DDS默认值（防止配置缺失）
     default_dds = {
-        'rmw_implementation': 'rmw_cyclonedds_cpp',  # 默认CycloneDDS
-        'domain_id': 0                               # 默认域ID
+        'rmw_implementation': 'rmw_cyclonedds_cpp', 
+        'domain_id': 0                              
     }
-    # 合并配置（用户配置覆盖默认值）
     merged_dds = {**default_dds, **dds_config}
     
     return [
@@ -157,13 +146,12 @@ def generate_launch_description():
     
     
     default_dds_config_path = os.path.join(
-        get_package_share_directory('crazyflie'),  # 若配置在其他包，修改为对应包名
+        get_package_share_directory('crazyflie'), 
         'config',
-        'server.yaml'  # 你的DDS配置文件路径
+        'server.yaml'  
     )
     
     return LaunchDescription([
-        # 原有参数声明（完全保留）
         DeclareLaunchArgument('crazyflies_yaml_file', 
                               default_value=default_crazyflies_yaml_path),
         DeclareLaunchArgument('motion_capture_yaml_file', 
@@ -181,9 +169,8 @@ def generate_launch_description():
         
         DeclareLaunchArgument('dds_config_file',
                               default_value=default_dds_config_path,
-                              description='DDS配置文件路径（含rmw_implementation和domain_id）'),
+                              description='DDS configuration file path (including rmw_implementation and domain_id)'),
         
-        #用launch_main整合DDS与原有节点
         OpaqueFunction(function=launch_main),
         
         Node(

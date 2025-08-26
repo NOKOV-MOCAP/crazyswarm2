@@ -25,7 +25,6 @@
                     "ignoreFailures": true
                 }
             ],
-            //"preLaunchTask": "launch_crazyflie",
             "miDebuggerPath": "/usr/bin/gdb",
             "miDebuggerServerAddress": "localhost:13000",
         },
@@ -34,8 +33,6 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/install/crazyflie/lib/crazyflie/crazyflie_server",
-            // "processName":"crazyflie_server",
-            // "processName":"launch_crazyflie",
             "processId": "${command:pickProcess}",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
@@ -46,7 +43,6 @@
                     "ignoreFailures": true
                 }
             ],
-            // "processId": "${command::ros2}${input:FindAttachPID}",
         }
     ],
     "inputs": [
@@ -56,7 +52,6 @@
           "command": "workbench.action.terminal.sendSequence",
           "args": {
             "text": "pgrep crazyflie\n",
-            // "command": "pgrep 'crazyflie'",
             "description": "Select your Process PID",
             "useFirstResult": true,
           }
