@@ -2,11 +2,31 @@ import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetEnvironmentVariable
 from launch_ros.actions import Node
 from launch.conditions import LaunchConfigurationEquals
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
+from pathlib import Path
+
+def extract_dds_config(context) -> list:
+    config_path = LaunchConfiguration('dds_config_file').perform(context)
+    if not Path(config_path).exists():
+        raise FileNotFoundError(f"DDS configuration file does not exist: {config_path}")
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    dds_config = config.get('/crazyflie_server', {}).get('dds', {})
+    
+    default_dds = {
+        'rmw_implementation': 'rmw_cyclonedds_cpp', 
+        'domain_id': 0                              
+    }
+    merged_dds = {**default_dds, **dds_config}
+    
+    return [
+        SetEnvironmentVariable('RMW_IMPLEMENTATION', merged_dds['rmw_implementation']),
+        SetEnvironmentVariable('ROS_DOMAIN_ID', str(merged_dds['domain_id']))
+    ]
 
 def parse_yaml(context):
     # Load the crazyflies YAML file
@@ -84,7 +104,7 @@ def parse_yaml(context):
             name='crazyflie_server',
             output='screen',
             parameters= server_params,
-            prefix=PythonExpression(['"xterm -e gdb -ex run --args" if ', LaunchConfiguration('debug'), ' else ""']),
+            prefix=PythonExpression(['"gdbserver localhost:13000" if ', LaunchConfiguration('debug'), ' else ""']),
         ),
         Node(
             package='crazyflie_sim',
@@ -95,6 +115,13 @@ def parse_yaml(context):
             emulate_tty=True,
             parameters= server_params,
         )]
+
+
+def launch_main(context):
+    dds_actions = extract_dds_config(context)
+    parse_yaml_nodes = parse_yaml(context)
+    return dds_actions + parse_yaml_nodes
+
 
 def generate_launch_description():
     default_crazyflies_yaml_path = os.path.join(
@@ -117,6 +144,13 @@ def generate_launch_description():
         'config',
         'teleop.yaml')
     
+    
+    default_dds_config_path = os.path.join(
+        get_package_share_directory('crazyflie'), 
+        'config',
+        'server.yaml'  
+    )
+    
     return LaunchDescription([
         DeclareLaunchArgument('crazyflies_yaml_file', 
                               default_value=default_crazyflies_yaml_path),
@@ -127,12 +161,18 @@ def generate_launch_description():
         DeclareLaunchArgument('backend', default_value='cpp'),
         DeclareLaunchArgument('debug', default_value='False'),
         DeclareLaunchArgument('rviz', default_value='False'),
-        DeclareLaunchArgument('gui', default_value='True'),
-        DeclareLaunchArgument('qgc', default_value='True'),
-        DeclareLaunchArgument('teleop', default_value='True'),
+        DeclareLaunchArgument('gui', default_value='False'),
+        DeclareLaunchArgument('qgc', default_value='False'),
+        DeclareLaunchArgument('teleop', default_value='False'),
         DeclareLaunchArgument('mocap', default_value='True'),
         DeclareLaunchArgument('teleop_yaml_file', default_value=''),
-        OpaqueFunction(function=parse_yaml),
+        
+        DeclareLaunchArgument('dds_config_file',
+                              default_value=default_dds_config_path,
+                              description='DDS configuration file path (including rmw_implementation and domain_id)'),
+        
+        OpaqueFunction(function=launch_main),
+        
         Node(
             condition=LaunchConfigurationEquals('teleop', 'True'),
             package='crazyflie',
@@ -143,10 +183,6 @@ def generate_launch_description():
                 ('arm', 'all/arm'),
                 ('takeoff', 'all/takeoff'),
                 ('land', 'all/land'),
-                # uncomment to manually control (and update teleop.yaml)
-                # ('cmd_vel_legacy', 'cf6/cmd_vel_legacy'),
-                # ('cmd_full_state', 'cf6/cmd_full_state'),
-                # ('notify_setpoints_stop', 'cf6/notify_setpoints_stop'),
             ],
             parameters= [PythonExpression(["'" + telop_yaml_path +"' if '", LaunchConfiguration('teleop_yaml_file'), "' == '' else '", LaunchConfiguration('teleop_yaml_file'), "'"])],
         ),
@@ -154,7 +190,7 @@ def generate_launch_description():
             condition=LaunchConfigurationEquals('teleop', 'True'),
             package='joy',
             executable='joy_node',
-            name='joy_node' # by default id=0
+            name='joy_node'
         ),
         Node(
             condition=LaunchConfigurationEquals('rviz', 'True'),
@@ -182,7 +218,8 @@ def generate_launch_description():
             package='nokov_swarm',
             namespace='',
             executable='nokov_swarm_node',
-            name='qgc'
-            
+            name='qgc',
+            emulate_tty=True,
+            output='screen'
         ),
     ])

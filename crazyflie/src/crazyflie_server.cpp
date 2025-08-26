@@ -244,7 +244,6 @@ public:
     // declares lambda, to be used as local function, which re-declares specified parameters for other nodes to query
     auto declare_param = [&parameter_overrides, node](const std::string& param)
     {
-      // rclcpp::ParameterValue value(parameter_overridesparam]);
       node->declare_parameter(param, parameter_overrides.at(param));
     };
     declare_param("robots." + name + ".uri");
@@ -1242,7 +1241,6 @@ public:
     // This is the last service to announce and can be used to check if the server is fully available
     service_emergency_ = this->create_service<Empty>("all/emergency", std::bind(&CrazyflieServer::emergency, this, _1, _2), get_service_qos(), callback_group_all_srv_);
   }
-
 
 private:
   void emergency(const std::shared_ptr<Empty::Request> request,

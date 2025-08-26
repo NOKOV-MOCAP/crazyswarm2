@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "launch_crazyflie",
+            "type": "shell",
+            "command": "ros2 launch crazyflie launch.py",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Launch crazyflie server node",
+            "options": {
+                "env": {
+                    "PATH": "/opt/ros/<distro>/bin:${env:PATH}"
+                }
+            }
+        }
+    ]
+}
