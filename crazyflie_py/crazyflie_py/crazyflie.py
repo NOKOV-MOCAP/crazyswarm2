@@ -19,7 +19,7 @@ from crazyflie_interfaces.srv import Arm, GoTo, Land, \
     NotifySetpointsStop, StartTrajectory, Takeoff, UploadTrajectory
 from geometry_msgs.msg import Point
 import numpy as np
-from rcl_interfaces.msg import Parameter, ParameterType, ParameterValue
+from rcl_interfaces.msg import Parameter, ParameterType, ParameterValue, VelocityWorld
 from rcl_interfaces.srv import DescribeParameters, GetParameters, ListParameters, SetParameters
 
 import rclpy
@@ -185,11 +185,10 @@ class Crazyflie:
         self.cmdPositionMsg = Position()
         self.cmdPositionMsg.header.frame_id = '/world'
 
-        # self.cmdVelocityWorldPublisher = rospy.Publisher(
-        #   prefix + '/cmd_velocity_world', VelocityWorld, queue_size=1)
-        # self.cmdVelocityWorldMsg = VelocityWorld()
-        # self.cmdVelocityWorldMsg.header.seq = 0
-        # self.cmdVelocityWorldMsg.header.frame_id = '/world'
+        self.cmdVelocityWorldPublisher = node.create_publisher(
+            VelocityWorld, prefix + '/cmd_velocity_world', 1)
+        self.cmdVelocityWorldMsg = VelocityWorld()
+        self.cmdVelocityWorldMsg.header.frame_id = '/world'
 
     def setGroupMask(self, groupMask):
         """
@@ -626,34 +625,36 @@ class Crazyflie:
         self.cmdFullStateMsg.twist.angular.z = omega[2]
         self.cmdFullStatePublisher.publish(self.cmdFullStateMsg)
 
-    # def cmdVelocityWorld(self, vel, yawRate):
-    #     """Sends a streaming velocity-world controller setpoint command.
+    def cmdVelocityWorld(self, vel, yawRate):
+        """Sends a streaming velocity-world controller setpoint command.
 
-    #     In this mode, the PC specifies desired velocity vector and yaw rate.
-    #     The onboard controller will try to achive this velocity.
+        In this mode, the PC specifies desired velocity vector and yaw rate.
+        The onboard controller will try to achive this velocity.
 
-    #     NOTE: the Mellinger controller is Crazyswarm's default controller, but
-    #     it has not been tuned (or even tested) for velocity control mode.
-    #     Switch to the PID controller by changing
-    #     `firmwareParams.stabilizer.controller` to `1` in your launch file.
+        NOTE: the Mellinger controller is Crazyswarm's default controller, but
+        it has not been tuned (or even tested) for velocity control mode.
+        Switch to the PID controller by changing
+        `firmwareParams.stabilizer.controller` to `1` in your launch file.
 
-    #     Sending a streaming setpoint of any type will force a change from
-    #     high-level to low-level command mode. Currently, there is no mechanism
-    #     to change back, but it is a high-priority feature to implement.
-    #     This means it is not possible to use e.g. :meth:`land()` or
-    #     :meth:`goTo()` after a streaming setpoint has been sent.
+        Sending a streaming setpoint of any type will force a change from
+        high-level to low-level command mode. Currently, there is no mechanism
+        to change back, but it is a high-priority feature to implement.
+        This means it is not possible to use e.g. :meth:`land()` or
+        :meth:`goTo()` after a streaming setpoint has been sent.
 
-    #     Args:
-    #         vel (array-like of float[3]): Velocity. Meters / second.
-    #         yawRate (float): Yaw angular velocity. Degrees / second.
-    #     """
-    #     self.cmdVelocityWorldMsg.header.stamp = rospy.Time.now()
-    #     self.cmdVelocityWorldMsg.header.seq += 1
-    #     self.cmdVelocityWorldMsg.vel.x = vel[0]
-    #     self.cmdVelocityWorldMsg.vel.y = vel[1]
-    #     self.cmdVelocityWorldMsg.vel.z = vel[2]
-    #     self.cmdVelocityWorldMsg.yawRate = yawRate
-    #     self.cmdVelocityWorldPublisher.publish(self.cmdVelocityWorldMsg)
+        Args:
+            vel (array-like of float[3]): Velocity. Meters / second.
+            yawRate (float): Yaw angular velocity. Degrees / second.
+            relative (bool): If true, the goal position is interpreted as a
+                relative velocity from the current velocity. Otherwise, the goal
+                velocity is interpreted as absolute coordintates in the global
+                reference frame.        """
+        self.cmdVelocityWorldMsg.header.stamp = self.node.get_clock().now().to_msg()
+        self.cmdVelocityWorldMsg.vel.x = vel[0]
+        self.cmdVelocityWorldMsg.vel.y = vel[1]
+        self.cmdVelocityWorldMsg.vel.z = vel[2]
+        self.cmdVelocityWorldMsg.yaw_rate = yawRate
+        self.cmdVelocityWorldPublisher.publish(self.cmdVelocityWorldMsg)
 
     # def cmdStop(self):
     #     """Interrupts any high-level command to stop and cut motor power.
