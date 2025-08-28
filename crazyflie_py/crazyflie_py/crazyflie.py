@@ -14,12 +14,12 @@ from collections import defaultdict
 # from .visualizer import visNull
 
 
-from crazyflie_interfaces.msg import FullState, Position, Status, TrajectoryPolynomialPiece
+from crazyflie_interfaces.msg import FullState, Position, Status, TrajectoryPolynomialPiece, VelocityWorld
 from crazyflie_interfaces.srv import Arm, GoTo, Land, \
     NotifySetpointsStop, StartTrajectory, Takeoff, UploadTrajectory
 from geometry_msgs.msg import Point
 import numpy as np
-from rcl_interfaces.msg import Parameter, ParameterType, ParameterValue, VelocityWorld
+from rcl_interfaces.msg import Parameter, ParameterType, ParameterValue
 from rcl_interfaces.srv import DescribeParameters, GetParameters, ListParameters, SetParameters
 
 import rclpy
