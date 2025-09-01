@@ -14,7 +14,7 @@ from collections import defaultdict
 # from .visualizer import visNull
 
 
-from crazyflie_interfaces.msg import FullState, Position, Status, TrajectoryPolynomialPiece
+from crazyflie_interfaces.msg import FullState, Position, Status, TrajectoryPolynomialPiece, VelocityWorld
 from crazyflie_interfaces.srv import Arm, GoTo, Land, \
     NotifySetpointsStop, StartTrajectory, Takeoff, UploadTrajectory
 from geometry_msgs.msg import Point
@@ -26,7 +26,10 @@ import rclpy
 import rclpy.node
 import rowan
 from std_srvs.srv import Empty
-
+from rclpy.duration import Duration
+from rclpy.time import Time
+import tf2_ros
+from tf2_ros import TransformListener, Buffer
 
 def arrayToGeometryPoint(a):
     result = Point()
@@ -98,7 +101,7 @@ class Crazyflie:
     The bulk of the module's functionality is contained in this class.
     """
 
-    def __init__(self, node, cfname, paramTypeDict):
+    def __init__(self, node, cfname, paramTypeDict, tf):
         """
         Construct Crazyflie.
 
@@ -112,7 +115,7 @@ class Crazyflie:
         self.prefix = prefix
         self.node = node
 
-        # self.tf = tf
+        self.tf = tf
 
         self.emergencyService = node.create_client(Empty, prefix + '/emergency')
         self.emergencyService.wait_for_service()
@@ -185,11 +188,10 @@ class Crazyflie:
         self.cmdPositionMsg = Position()
         self.cmdPositionMsg.header.frame_id = '/world'
 
-        # self.cmdVelocityWorldPublisher = rospy.Publisher(
-        #   prefix + '/cmd_velocity_world', VelocityWorld, queue_size=1)
-        # self.cmdVelocityWorldMsg = VelocityWorld()
-        # self.cmdVelocityWorldMsg.header.seq = 0
-        # self.cmdVelocityWorldMsg.header.frame_id = '/world'
+        self.cmdVelocityWorldPublisher = node.create_publisher(
+            VelocityWorld, prefix + '/cmd_velocity_world', 1)
+        self.cmdVelocityWorldMsg = VelocityWorld()
+        self.cmdVelocityWorldMsg.header.frame_id = '/world'
 
     def setGroupMask(self, groupMask):
         """
@@ -223,44 +225,44 @@ class Crazyflie:
         except KeyError:
             self.node.get_logger().error('setGroupMask: Your firmware is too old - Please update.')
 
-    # def enableCollisionAvoidance(self, others, ellipsoidRadii):
-    #     """Enables onboard collision avoidance.
+    def enableCollisionAvoidance(self, others, ellipsoidRadii):
+        """Enables onboard collision avoidance.
 
-    #     When enabled, avoids colliding with other Crazyflies by using the
-    #     Buffered Voronoi Cells method [1]. Computation is performed onboard.
+        When enabled, avoids colliding with other Crazyflies by using the
+        Buffered Voronoi Cells method [1]. Computation is performed onboard.
 
-    #     Args:
-    #         others (List[Crazyflie]): List of other :obj:`Crazyflie` objects.
-    #             In simulation, collision avoidance is checked only with members
-    #             of this list.  With real hardware, this list is **ignored**, and
-    #             collision avoidance is checked with all other Crazyflies on the
-    #             same radio channel.
-    #         ellipsoidRadii (array-like of float[3]): Radii of collision volume
-    #             ellipsoid in meters.
-    #             The Crazyflie's boundary for collision checking is a tall
-    #             ellipsoid. This accounts for the downwash effect: Due to the
-    #             fast-moving stream of air produced by the rotors, the safe
-    #             distance to pass underneath another rotorcraft is much further
-    #             than the safe distance to pass to the side.
+        Args:
+            others (List[Crazyflie]): List of other :obj:`Crazyflie` objects.
+                In simulation, collision avoidance is checked only with members
+                of this list.  With real hardware, this list is **ignored**, and
+                collision avoidance is checked with all other Crazyflies on the
+                same radio channel.
+            ellipsoidRadii (array-like of float[3]): Radii of collision volume
+                ellipsoid in meters.
+                The Crazyflie's boundary for collision checking is a tall
+                ellipsoid. This accounts for the downwash effect: Due to the
+                fast-moving stream of air produced by the rotors, the safe
+                distance to pass underneath another rotorcraft is much further
+                than the safe distance to pass to the side.
 
-    #     [1] D. Zhou, Wang, Z., Bandyopadhyay, S., and Schwager, M.
-    #         Fast, On-line Collision Avoidance for Dynamic Vehicles using
-    #         Buffered Voronoi Cells.  IEEE Robotics and Automation Letters
-    #         (RA-L), vol. 2, no. 2, pp. 1047 - 1054, 2017.
-    #         https://msl.stanford.edu/fast-line-collision-avoidance-dynamic-vehicles-using-buffered-voronoi-cells
-    #     """
-    #     # Set radii before enabling to ensure collision avoidance never
-    #     # observes a wrong radius value.
-    #     self.setParams({
-    #         'colAv/ellipsoidX': float(ellipsoidRadii[0]),
-    #         'colAv/ellipsoidY': float(ellipsoidRadii[1]),
-    #         'colAv/ellipsoidZ': float(ellipsoidRadii[2]),
-    #     })
-    #     self.setParam('colAv/enable', 1)
+        [1] D. Zhou, Wang, Z., Bandyopadhyay, S., and Schwager, M.
+            Fast, On-line Collision Avoidance for Dynamic Vehicles using
+            Buffered Voronoi Cells.  IEEE Robotics and Automation Letters
+            (RA-L), vol. 2, no. 2, pp. 1047 - 1054, 2017.
+            https://msl.stanford.edu/fast-line-collision-avoidance-dynamic-vehicles-using-buffered-voronoi-cells
+        """
+        # Set radii before enabling to ensure collision avoidance never
+        # observes a wrong radius value.
+        self.setParams({
+            'colAv.ellipsoidX': float(ellipsoidRadii[0]),
+            'colAv.ellipsoidY': float(ellipsoidRadii[1]),
+            'colAv.ellipsoidZ': float(ellipsoidRadii[2]),
+        })
+        self.setParam('colAv.enable', 1)
 
-    # def disableCollisionAvoidance(self):
-    #     """Disables onboard collision avoidance."""
-    #     self.setParam('colAv/enable', 0)
+    def disableCollisionAvoidance(self):
+        """Disables onboard collision avoidance."""
+        self.setParam('colAv.enable', 0)
 
     def emergency(self):
         """
@@ -485,23 +487,28 @@ class Crazyflie:
         req.arm = arm
         self.armService.call_async(req)
 
-    # def position(self):
-    #     """Returns the last true position measurement from motion capture.
+    def position(self):
+        """Returns the last true position measurement from motion capture.
 
-    #     If at least one position measurement for this robot has been received
-    #     from the motion capture system since startup, this function returns
-    #     immediately with the most recent measurement. However, if **no**
-    #     position measurements have been received, it blocks until the first
-    #     one arrives.
+        If at least one position measurement for this robot has been received
+        from the motion capture system since startup, this function returns
+        immediately with the most recent measurement. However, if **no**
+        position measurements have been received, it blocks until the first
+        one arrives.
 
-    #     Returns:
-    #         position (np.array[3]): Current position. Meters.
-    #     """
-    #     self.tf.waitForTransform(
-    #       '/world', '/cf' + str(self.id), rospy.Time(0), rospy.Duration(10))
-    #     position, quaternion = self.tf.lookupTransform(
-    #       '/world', '/cf' + str(self.id), rospy.Time(0))
-    #     return np.array(position)
+        Returns:
+            position (np.array[3]): Current position. Meters.
+        """
+
+        try:
+            #tf_buffer.can_transform("/world", self.prefix, Time(0), Duration(10.0))
+            trans = self.tf.buffer.lookup_transform('world', self.prefix[1:], Time(seconds=0), Duration(seconds=10))
+            position = trans.transform.translation
+            return np.array([position.x, position.y, position.z])
+    
+        except (tf2_ros.TransformException, tf2_ros.LookupException, tf2_ros.ConnectivityException) as e:
+            self.node.get_logger().error("Transform failed: {}".format(e))
+            return None
 
     def getParam(self, name):
         """
@@ -556,6 +563,7 @@ class Crazyflie:
         """
         try:
             param_name = self.prefix[1:] + '.params.' + name
+            print(f'param_name:{param_name}')
             param_type = self.paramTypeDict[name]
             if param_type == ParameterType.PARAMETER_INTEGER:
                 param_value = ParameterValue(type=param_type, integer_value=int(value))
@@ -569,17 +577,16 @@ class Crazyflie:
         except Exception as e:
             self.node.get_logger().warn(f'(crazyflie.py)setParam : exception raised {e}')
 
-    # def setParams(self, params):
-    #     """Changes the value of several parameters at once.
+    def setParams(self, params):
+        """Changes the value of several parameters at once.
 
-    #     See :meth:`getParam()` docs for overview of the parameter system.
+        See :meth:`getParam()` docs for overview of the parameter system.
 
-    #     Args:
-    #         params (Dict[str, Any]): Dict of parameter names/values.
-    #     """
-    #     for name, value in params.items():
-    #         rospy.set_param(self.prefix + '/' + name, value)
-    #     self.updateParamsService(params.keys())
+        Args:
+            params (Dict[str, Any]): Dict of parameter names/values.
+        """
+        for name, value in params.items():
+            self.setParam( name, value)
 
     def cmdFullState(self, pos, vel, acc, yaw, omega):
         """
@@ -626,34 +633,36 @@ class Crazyflie:
         self.cmdFullStateMsg.twist.angular.z = omega[2]
         self.cmdFullStatePublisher.publish(self.cmdFullStateMsg)
 
-    # def cmdVelocityWorld(self, vel, yawRate):
-    #     """Sends a streaming velocity-world controller setpoint command.
+    def cmdVelocityWorld(self, vel, yawRate):
+        """Sends a streaming velocity-world controller setpoint command.
 
-    #     In this mode, the PC specifies desired velocity vector and yaw rate.
-    #     The onboard controller will try to achive this velocity.
+        In this mode, the PC specifies desired velocity vector and yaw rate.
+        The onboard controller will try to achive this velocity.
 
-    #     NOTE: the Mellinger controller is Crazyswarm's default controller, but
-    #     it has not been tuned (or even tested) for velocity control mode.
-    #     Switch to the PID controller by changing
-    #     `firmwareParams.stabilizer.controller` to `1` in your launch file.
+        NOTE: the Mellinger controller is Crazyswarm's default controller, but
+        it has not been tuned (or even tested) for velocity control mode.
+        Switch to the PID controller by changing
+        `firmwareParams.stabilizer.controller` to `1` in your launch file.
 
-    #     Sending a streaming setpoint of any type will force a change from
-    #     high-level to low-level command mode. Currently, there is no mechanism
-    #     to change back, but it is a high-priority feature to implement.
-    #     This means it is not possible to use e.g. :meth:`land()` or
-    #     :meth:`goTo()` after a streaming setpoint has been sent.
+        Sending a streaming setpoint of any type will force a change from
+        high-level to low-level command mode. Currently, there is no mechanism
+        to change back, but it is a high-priority feature to implement.
+        This means it is not possible to use e.g. :meth:`land()` or
+        :meth:`goTo()` after a streaming setpoint has been sent.
 
-    #     Args:
-    #         vel (array-like of float[3]): Velocity. Meters / second.
-    #         yawRate (float): Yaw angular velocity. Degrees / second.
-    #     """
-    #     self.cmdVelocityWorldMsg.header.stamp = rospy.Time.now()
-    #     self.cmdVelocityWorldMsg.header.seq += 1
-    #     self.cmdVelocityWorldMsg.vel.x = vel[0]
-    #     self.cmdVelocityWorldMsg.vel.y = vel[1]
-    #     self.cmdVelocityWorldMsg.vel.z = vel[2]
-    #     self.cmdVelocityWorldMsg.yawRate = yawRate
-    #     self.cmdVelocityWorldPublisher.publish(self.cmdVelocityWorldMsg)
+        Args:
+            vel (array-like of float[3]): Velocity. Meters / second.
+            yawRate (float): Yaw angular velocity. Degrees / second.
+            relative (bool): If true, the goal position is interpreted as a
+                relative velocity from the current velocity. Otherwise, the goal
+                velocity is interpreted as absolute coordintates in the global
+                reference frame.        """
+        self.cmdVelocityWorldMsg.header.stamp = self.node.get_clock().now().to_msg()
+        self.cmdVelocityWorldMsg.vel.x = vel[0]
+        self.cmdVelocityWorldMsg.vel.y = vel[1]
+        self.cmdVelocityWorldMsg.vel.z = vel[2]
+        self.cmdVelocityWorldMsg.yaw_rate = yawRate
+        self.cmdVelocityWorldPublisher.publish(self.cmdVelocityWorldMsg)
 
     # def cmdStop(self):
     #     """Interrupts any high-level command to stop and cut motor power.
@@ -871,8 +880,9 @@ class CrazyflieServer(rclpy.node.Node):
         self.crazyflies = []
         self.crazyfliesById = {}
         self.crazyfliesByName = {}
+        self.tf = TransformListener(Buffer(), self)
         for cfname in cfnames:
-            cf = Crazyflie(self, cfname, allParamTypeDicts[cfname])
+            cf = Crazyflie(self, cfname, allParamTypeDicts[cfname], self.tf)
             self.crazyflies.append(cf)
             self.crazyfliesByName[cfname] = cf
             # For legacy crazyswarm1 code, also provide crazyfliesById
