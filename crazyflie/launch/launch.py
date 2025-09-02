@@ -214,7 +214,13 @@ def generate_launch_description():
             }]
         ),
         Node(
-            condition=LaunchConfigurationEquals('qgc', 'True'),
+            condition=IfCondition(
+                PythonExpression([
+                    "'", LaunchConfiguration('qgc'), "' == 'True'",
+                    " and ",
+                    "len('", LaunchConfiguration('crazyflies_yaml_file'), "') > 0"  # 确保crazyflie配置已加载
+                ])
+            ),
             package='nokov_swarm',
             namespace='',
             executable='nokov_swarm_node',
