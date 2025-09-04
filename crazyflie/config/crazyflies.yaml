@@ -100,13 +100,16 @@ all:
         frequency: 10         # Hz
       status:
         frequency: 1         # Hz
-    #custom_topics:
-    #  topic_name1:
-    #    frequency: 10 # Hz
-    #    vars: ["stateEstimateZ.x", "stateEstimateZ.y", "stateEstimateZ.z", "pm.vbat"]
-    #  topic_name2:
-    #    frequency: 1 # Hz
-    #    vars: ["stabilizer.roll", "stabilizer.pitch", "stabilizer.yaw"]
+    custom_topics:
+      thrust:
+        frequency: 10  # Hz
+        vars: ["stabilizer.thrust", "stabilizer.roll", "stabilizer.pitch", "stabilizer.yaw"]
+     #  topic_name1:
+     #    frequency: 10 # Hz
+     #    vars: ["stateEstimateZ.x", "stateEstimateZ.y", "stateEstimateZ.z", "pm.vbat"]
+     #  topic_name2:
+     #    frequency: 1 # Hz
+     #    vars: ["stabilizer.roll", "stabilizer.pitch", "stabilizer.yaw"]
   # firmware parameters for all drones (use robot_types/type_name to set per type, or
   # robots/drone_name to set per drone)
   firmware_params:
