@@ -11,12 +11,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Checkout nokovswarm submodules
-      run: |
-      cd nokov_swarm
-      git fetch
-      git checkout week5
-      git pull origin week5
+    - name: Checkout NokovSwarm
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
       
     - name: Set up Miniconda
       uses: conda-incubator/setup-miniconda@v2
