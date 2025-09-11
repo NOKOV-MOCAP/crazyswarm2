@@ -4,3 +4,6 @@
 [submodule "nokov_swarm/nokov_swarm"]
 	path = nokov_swarm/nokov_swarm
 	url = git@github.com:NOKOV-MOCAP/NokovSwarm.git
+[submodule "motion_capture_tracking"]
+	path = motion_capture_tracking
+	url = git@github.com:NOKOV-MOCAP/motion_capture_tracking.git
