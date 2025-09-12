@@ -26,23 +26,12 @@ jobs:
           cd nokov_swarm/nokov_swarm
           tree nokov_swarm
       
-      - name: Verify environment file
-        run: |
-          pwd
-          ls -la nokov_swarm/nokov_swarm
-          if [ -f "nokov_swarm/nokov_swarm/environment.yaml" ]; then
-            echo "File exists!"
-          else
-            echo "File does NOT exist!"
-            exit 1
-          fi
-      
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: '3.8'
           activate-environment: nokovswarm
-          environment-file: ${{ github.workspace }}/nokov_swarm/nokov_swarm/environment.yaml
+          environment-file: ${{ github.workspace }}/nokov_swarm/nokov_swarm/nokov_swarm/environment.yaml
 
       - name: Run tests
         run: |
