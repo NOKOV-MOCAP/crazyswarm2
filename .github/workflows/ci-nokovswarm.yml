@@ -23,6 +23,7 @@ jobs:
           
       - name: Test Submodules
         run: |
+          cd nokov_swarm
           tree nokov_swarm
           
       - name: Set up Miniconda
@@ -30,7 +31,7 @@ jobs:
         with:
           python-version: '3.8'
           activate-environment: nokovswarm
-          environment-file: ../nokov_swarm/nokov_swarm/environment.yaml
+          environment-file: environment.yaml
 
       - name: Run tests
         run: |
