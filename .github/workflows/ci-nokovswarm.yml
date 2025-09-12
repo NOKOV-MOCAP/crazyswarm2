@@ -30,13 +30,13 @@ jobs:
 
       - name: Run tests
         run: |
-          cd nokov_swarm/test
+          cd nokov_swarm/nokov_swarm/test
           ./run_all_test.sh
   
       - name: Package
         run: |
           conda activate nokovswarm
-          cd nokov_swarm/nokov_swarm/build_scripts
+          cd nokov_swarm/nokov_swarm/nokov_swarm/build_scripts
           ./build_linux.sh
           cd ../dist
           ./NokovSwarm
