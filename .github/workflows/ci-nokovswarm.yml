@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: '3.8'
           activate-environment: nokovswarm
-          environment-file: nokov_swarm/nokov_swarm/environment.yml
+          environment-file: nokov_swarm/nokov_swarm/environment.yaml
 
       - name: Run tests
         run: |
