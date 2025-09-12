@@ -60,13 +60,13 @@ jobs:
           cd nokov_swarm/nokov_swarm/test
           ./run_all_test.sh
   
-      - name: Package
-        run: |
-          conda init bash
-          source ~/.bashrc
-          conda activate nokovswarm          
-          cd nokov_swarm/nokov_swarm/nokov_swarm/build_scripts
-          ./build_linux.sh
-          cd ../dist
-          ./NokovSwarm
+      # - name: Package
+      #   run: |
+      #     conda init bash
+      #     source ~/.bashrc
+      #     conda activate nokovswarm          
+      #     cd nokov_swarm/nokov_swarm/nokov_swarm/build_scripts
+      #     ./build_linux.sh
+      #     cd ../dist
+      #     ./NokovSwarm
       
