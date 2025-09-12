@@ -21,12 +21,16 @@ jobs:
           path: nokov_swarm
           submodules: true
           
+      - name: Test Submodules
+        run: |
+          tree nokov_swarm
+          
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: '3.8'
           activate-environment: nokovswarm
-          environment-file: nokov_swarm/nokov_swarm/environment.yaml
+          environment-file: ../nokov_swarm/nokov_swarm/environment.yaml
 
       - name: Run tests
         run: |
