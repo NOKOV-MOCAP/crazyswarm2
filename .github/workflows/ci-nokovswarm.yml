@@ -20,11 +20,6 @@ jobs:
           token: ${{ secrets.SUBMODULE_ACCESS_TOKEN }}
           path: nokov_swarm
           submodules: true
-          
-      - name: Test Submodules
-        run: |
-          cd nokov_swarm/nokov_swarm
-          tree nokov_swarm
       
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v2
@@ -35,7 +30,6 @@ jobs:
 
       - name: Run tests
         run: |
-          conda activate nokovswarm
           cd nokov_swarm/test
           ./run_all_test.sh
   
