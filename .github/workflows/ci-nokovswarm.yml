@@ -29,8 +29,7 @@ jobs:
       - name: Verify environment file
         run: |
           pwd
-          ls -la
-          ls -la nokov_swarm
+          ls -la nokov_swarm/nokov_swarm
           if [ -f "nokov_swarm/nokov_swarm/environment.yaml" ]; then
             echo "File exists!"
           else
