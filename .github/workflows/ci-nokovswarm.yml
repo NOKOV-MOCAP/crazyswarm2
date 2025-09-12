@@ -23,7 +23,7 @@ jobs:
           
       - name: Test Submodules
         run: |
-          cd nokov_swarm/nokovswarm
+          cd nokov_swarm/nokov_swarm
           tree nokov_swarm
           
       - name: Set up Miniconda
