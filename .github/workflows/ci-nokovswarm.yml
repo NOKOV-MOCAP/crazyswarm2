@@ -7,13 +7,17 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
+      - name: Install ROS Galactic
+        run: |
+          sudo apt install -y ros-galactic-desktop
+          
       - name: Update Submodules
         uses: actions/checkout@v3
         with:
