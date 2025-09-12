@@ -20,6 +20,11 @@ jobs:
           token: ${{ secrets.SUBMODULE_ACCESS_TOKEN }}
           path: nokov_swarm
           submodules: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libegl1 libgl1-mesa-glx libxcb-xinerama0
       
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v2
