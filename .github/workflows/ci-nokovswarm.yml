@@ -18,8 +18,7 @@ jobs:
         uses: actions/setup-miniconda@v4
         with:
           conda-channel: defaults
-          conda-channel: https://repo.anaconda.com/pkgs/main
-
+          
       - uses: actions/checkout@v3
       - name: Update Submodules
         run: |
