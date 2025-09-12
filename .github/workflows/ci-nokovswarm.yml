@@ -52,16 +52,22 @@ jobs:
           conda activate nokovswarm
           conda env list  # 验证环境
           
+      - name: Compile and Build Crazyswarm2
+        run: |
+          source /opt/ros/humble/setup.bash
+          colcon build --symlink-install
+          
       - name: Run tests
         run: |
           conda init bash
           source ~/.bashrc
-          conda activate nokovswarm          
+          conda activate nokovswarm
           cd nokov_swarm/nokov_swarm/test
           ./run_all_test.sh
   
       - name: Package
         run: |
+          source install/setup.bash
           conda init bash
           source ~/.bashrc
           conda activate nokovswarm          
