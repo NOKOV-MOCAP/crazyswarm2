@@ -7,16 +7,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
-      - name: Install ROS Galactic
+      - name: Install ROS Humble
         run: |
-          sudo apt install -y ros-galactic-desktop
+          sudo apt install -y ros-humble-desktop
           
       - name: Update Submodules
         uses: actions/checkout@v3
