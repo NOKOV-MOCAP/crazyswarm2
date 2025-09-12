@@ -28,6 +28,7 @@ jobs:
           activate-environment: nokovswarm
           environment-file: nokov_swarm/nokov_swarm/nokov_swarm/environment.yaml
           auto-activate-base: false
+          
       - name: Initialize and activate environment
         run: |
           conda init bash
@@ -37,11 +38,13 @@ jobs:
           
       - name: Run tests
         run: |
+          conda activate nokovswarm
           cd nokov_swarm/nokov_swarm/test
           ./run_all_test.sh
   
       - name: Package
         run: |
+          conda activate nokovswarm
           cd nokov_swarm/nokov_swarm/nokov_swarm/build_scripts
           ./build_linux.sh
           cd ../dist
