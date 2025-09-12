@@ -6,26 +6,24 @@ on:
       - week5
 
 jobs:
-  build_docker: # On Linux, use docker
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ros_distribution:
-          - galactic
-         # Define the Docker image(s) associated with each ROS distribution.
-        include:
-          # Humble Hawksbill (May 2022 - May 2027)
-          - docker_image: ubuntu:20.04
-            ros_distribution: galactic 
-            ros_version: 2
-
-    container:
-      image: ${{ matrix.docker_image }}
+  build:
+    runs-on: ubuntu-22.04
     steps:
-      - name: setup ROS environment
-        uses: ros-tooling/setup-ros@v0.5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          required-ros-distributions: ${{ matrix.ros_distribution }} 
+          python-version: '3.8'
+
+      - name: Install ROS 2
+        run: |
+          sudo apt update
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository universe
+          sudo apt update && sudo apt install -y curl gnupg lsb-release
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+          sudo apt update
+          sudo apt install -y ros-humble-desktop
           
       - name: Update Submodules
         uses: actions/checkout@v3
@@ -33,12 +31,7 @@ jobs:
           token: ${{ secrets.SUBMODULE_ACCESS_TOKEN }}
           path: nokov_swarm
           submodules: true
-          
-      - name: install dependencies
-        run: |
-           apt update
-           apt install -y libboost-program-options-dev libusb-1.0-0-dev
-      
+
       - name: Install system dependencies
         run: |
           sudo apt update
@@ -51,6 +44,13 @@ jobs:
           activate-environment: nokovswarm
           environment-file: nokov_swarm/nokov_swarm/nokov_swarm/environment.yaml
           auto-activate-base: false
+
+      - name: Initialize and activate environment
+        run: |
+          conda init bash
+          source ~/.bashrc
+          conda activate nokovswarm
+          conda env list  # 验证环境
           
       - name: Run tests
         run: |
@@ -60,6 +60,16 @@ jobs:
           cd nokov_swarm/nokov_swarm/test
           ./run_all_test.sh
   
+      - name: Package
+        run: |
+          conda init bash
+          source ~/.bashrc
+          conda activate nokovswarm          
+          cd nokov_swarm/nokov_swarm/nokov_swarm/build_scripts
+          ./build_linux.sh
+          cd ../dist
+          ./NokovSwarm
+          
       - name: Package
         run: |
           conda init bash
