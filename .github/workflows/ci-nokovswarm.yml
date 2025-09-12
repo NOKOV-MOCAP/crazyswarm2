@@ -20,28 +20,23 @@ jobs:
           token: ${{ secrets.SUBMODULE_ACCESS_TOKEN }}
           path: nokov_swarm
           submodules: true
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y ros-galactic-desktop
-  
-      - name: Build workspace
-        run: |
-          source /opt/ros/galactic/setup.bash
-          colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-          cd nokov_swarm/nokov_swarm
-          conda create -f environment.yaml
-          echo "source /home/nokov/miniconda3/envs/nokovswarm/bin/activate" >> ~/.bashrc
-          source ~/.bashrc
+          
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: '3.8'
+          activate-environment: nokovswarm
+          environment-file: nokov_swarm/nokov_swarm/environment.yml
 
       - name: Run tests
         run: |
+          conda activate nokovswarm
           cd nokov_swarm/test
           ./run_all_test.sh
   
       - name: Package
         run: |
+          conda activate nokovswarm
           cd nokov_swarm/nokov_swarm/build_scripts
           ./build_linux.sh
           cd ../dist
