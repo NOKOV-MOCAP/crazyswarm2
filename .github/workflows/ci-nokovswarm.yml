@@ -38,13 +38,17 @@ jobs:
           
       - name: Run tests
         run: |
-          conda activate nokovswarm
+          conda init bash
+          source ~/.bashrc
+          conda activate nokovswarm          
           cd nokov_swarm/nokov_swarm/test
           ./run_all_test.sh
   
       - name: Package
         run: |
-          conda activate nokovswarm
+          conda init bash
+          source ~/.bashrc
+          conda activate nokovswarm          
           cd nokov_swarm/nokov_swarm/nokov_swarm/build_scripts
           ./build_linux.sh
           cd ../dist
