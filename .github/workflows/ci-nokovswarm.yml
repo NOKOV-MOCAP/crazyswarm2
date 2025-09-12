@@ -62,7 +62,6 @@ jobs:
   
       - name: Package
         run: |
-          source install/setup.bash
           conda init bash
           source ~/.bashrc
           conda activate nokovswarm          
