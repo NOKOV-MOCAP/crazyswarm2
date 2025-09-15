@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import array
 from unittest.mock import Mock, MagicMock, patch, call
-from nokov_swarm.src.ros_intergration.service_caller import ServiceCaller, arrayToGeometryPoint
+from src.ros_intergration.service_caller import ServiceCaller, arrayToGeometryPoint
 from geometry_msgs.msg import Point
 from rcl_interfaces.msg import Parameter, ParameterType, ParameterValue
 from rcl_interfaces.srv import SetParameters, GetParameters

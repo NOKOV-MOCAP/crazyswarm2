@@ -2,7 +2,7 @@ import pytest
 import time
 import threading
 from unittest.mock import Mock, MagicMock, patch, call
-from nokov_swarm.src.core.system_monitor import SystemMonitor, get_system_monitor, set_latency_target, start_system_monitoring, stop_system_monitoring
+from src.core.system_monitor import SystemMonitor, get_system_monitor, set_latency_target, start_system_monitoring, stop_system_monitoring
 
 class TestSystemMonitor:
     """SystemMonitor类的单元测试"""
@@ -219,7 +219,7 @@ class TestSystemMonitor:
         
         assert result['status'] == 'success'
         assert result['latency'] == 5.123
-        assert '网络延迟: 5.123ms' in result['message']
+        assert 'network latency: 5.123ms' in result['message']
     
     @patch('subprocess.run')
     def test_measure_network_latency_failure(self, mock_run):
@@ -236,7 +236,7 @@ class TestSystemMonitor:
         
         assert result['status'] == 'error'
         assert result['latency'] == 0.0
-        assert result['message'] == '网络连接失败'
+        assert result['message'] == 'network connection failed'
     
     @patch('subprocess.run')
     def test_measure_network_latency_timeout(self, mock_run):
@@ -250,7 +250,7 @@ class TestSystemMonitor:
         
         assert result['status'] == 'error'
         assert result['latency'] == 0.0
-        assert '测量失败' in result['message']
+        assert 'measurement failed: timeout' in result['message']
     
     def test_set_latency_target(self):
         """测试设置延迟测量目标"""

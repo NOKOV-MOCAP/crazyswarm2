@@ -4,7 +4,7 @@ import tempfile
 import os
 from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch
-from nokov_swarm.src.core.config_handler import ConfigLoader
+from src.core.config_handler import ConfigLoader
 
 # 测试配置
 TEST_ROS_CONFIG = {

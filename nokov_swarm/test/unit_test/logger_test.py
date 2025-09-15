@@ -4,7 +4,7 @@ import tempfile
 import glob
 from unittest.mock import Mock, MagicMock, patch, call
 from PySide6.QtCore import QObject, Signal
-from nokov_swarm.src.utils.logger import ROSLogRedirector, get_log_redirector, setup_ros_log_redirect, add_custom_log
+from src.utils.logger import ROSLogRedirector, get_log_redirector, setup_ros_log_redirect, add_custom_log
 
 class TestROSLogRedirector:
     """ROSLogRedirector类的单元测试"""

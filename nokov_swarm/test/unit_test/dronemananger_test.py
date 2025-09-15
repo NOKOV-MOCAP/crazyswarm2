@@ -4,7 +4,7 @@ import tempfile
 import os
 from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch
-from nokov_swarm.src.core.drone_manager import DroneManager
+from src.core.drone_manager import DroneManager
 #from nokov_swarm.src.core import DroneManager  
 
 # 测试配置
