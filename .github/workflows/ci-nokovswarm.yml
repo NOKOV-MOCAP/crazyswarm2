@@ -1,57 +1,71 @@
-name: NokovSwarm
+name: ROS2 (Ubuntu)
 
 on:
   push:
-    branches:
-      - week5
+    branches: [ week5 ]
+  pull_request:
+    branches: [ week5 ]
+
+# Based on example provided at https://github.com/ros-tooling/setup-ros
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  build_docker: # On Linux, use docker
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: False
+      matrix:
+        ros_distribution:
+          - humble
+          - jazzy
+          - rolling
+
+        # Define the Docker image(s) associated with each ROS distribution.
+        include:
+          # Humble Hawksbill (May 2022 - May 2027)
+          - docker_image: rostooling/setup-ros-docker:ubuntu-jammy-ros-humble-ros-base-latest
+            ros_distribution: humble
+            ros_version: 2
+
+          # Jazzy Jalisco (May 2024 - May 2029)
+          - docker_image: rostooling/setup-ros-docker:ubuntu-noble-ros-jazzy-ros-base-latest
+            ros_distribution: jazzy
+            ros_version: 2
+
+          # Rolling Ridley  (June 2020 - Present)
+          - docker_image: rostooling/setup-ros-docker:ubuntu-noble-ros-rolling-ros-base-latest
+            ros_distribution: rolling
+            ros_version: 2
+
+    container:
+      image: ${{ matrix.docker_image }}
     steps:
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-
-      - name: Install ROS 2
+      - name: install dependencies
         run: |
           sudo apt update
-          sudo apt install -y software-properties-common
-          sudo add-apt-repository universe
-          sudo apt update && sudo apt install -y curl gnupg lsb-release
-          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-          sudo apt update
-          sudo apt install -y ros-humble-desktop
-          echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-          
-      - name: Update Submodules
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.SUBMODULE_ACCESS_TOKEN }}
-          path: nokov_swarm
-          submodules: true
+          sudo apt install -y libboost-program-options-dev libusb-1.0-0-dev
 
-      - name: Install system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y libegl1 libxcb-xinerama0
-      
-      - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: '3.8'
-          activate-environment: nokovswarm
-          environment-file: nokov_swarm/nokov_swarm/nokov_swarm/environment.yaml
-          auto-activate-base: false
+      - name: install pip dependencies
+          # TODO: would be better to follow https://answers.ros.org/question/370666/how-to-declare-an-external-python-dependency-in-ros2/
+          # but this requires some upstream changes
 
-      - name: Initialize and activate environment
+          # colcon still does not seem to properly support venv, so we use a workaround to install
+          # a python package globally by disabling the externally managed flag that is default on Ubuntu 24.04
         run: |
-          conda init bash
-          source ~/.bashrc
-          conda activate nokovswarm
-          conda env list  # 验证环境
+          sudo rm -f /usr/lib/python3.12/EXTERNALLY-MANAGED
+          pip install rowan
+
+      - uses: actions/checkout@v2
+      - name: build and test ROS 2
+        uses: ros-tooling/action-ros-ci@v0.3
+        with:
+          package-name: |
+            crazyflie
+            crazyflie_examples
+            crazyflie_interfaces
+            crazyflie_py
+            crazyflie_sim
+          target-ros2-distro: ${{ matrix.ros_distribution }}
+          vcs-repo-file-url: rosinstall
           
       - name: Run tests
         run: |
@@ -70,11 +84,3 @@ jobs:
           ./build_linux.sh
           cd ../dist
           ./NokovSwarm
-          
-      - name: Package
-        run: |
-          conda init bash
-          source ~/.bashrc
-          conda activate nokovswarm          
-          cd nokov_swarm/nokov_swarm/nokov_swarm/build_scripts
-          ./build_linux.sh
