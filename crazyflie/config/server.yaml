@@ -1,88 +1,72 @@
 /crazyflie_server:
+  dds:
+    domain_id: 1
+    rmw_implementation: rmw_fastrtps_cpp
+  qos:
+    avoid_ros_namespace_conventions: false
+    deadline: 0
+    depth: 10
+    durability: volatile
+    history: keep_last
+    lifespan: 0
+    liveliness: system_default
+    liveliness_lease_duration: 0
+    reliability: reliable
   ros__parameters:
-    warnings:
-      frequency: 1.0 # report/run checks once per second
-      motion_capture:
-        warning_if_rate_outside: [80.0, 120.0]
-      communication:
-        max_unicast_latency: 10.0 # ms
-        min_unicast_ack_rate: 0.9
-        min_unicast_receive_rate: 0.9 # requires status topic to be enabled
-        min_broadcast_receive_rate: 0.9 # requires status topic to be enabled
-        publish_stats: false
+    backend: cflib
     firmware_params:
       query_all_values_on_connect: false
-    # simulation related
     sim:
-      max_dt: 0 #0.1              # artificially limit the step() function (set to 0 to disable)
-      backend: np                 # see backend folder for a list 
-      visualizations:             # see visualization folder for a list
-        rviz:
-          enabled: true
-        pdf:
-          enabled: false
-          output_file: "result.pdf"
-        record_states:
-          enabled: false
-          output_dir: "state_info"
-          logging_time: 0.2  # how many seconds to leave between logs
-          file_formats: ["csv", "np"] # csv, np
+      backend: np
+      controller: mellinger
+      max_dt: 0
+      visualizations:
         blender:
-          enabled: false
-          fps: 1           # frames per second
-          cycle_bg: false  # if true, pictures will cycle through different environemt background images (useful for synthetic image generation). Otherwise a single environment background image will be used
-          cf_cameras:      # names of crazyflies with cameras on them if enabled in `crazyflies.yaml`
+          cf_cameras:
             cf231:
               calibration:
-                tvec: [0, 0, 0]
-                rvec: [1.2092, -1.2092, 1.2092] # 0 deg tilt (cameras looks in front of crazyflie)
+                rvec:
+                - 1.2092
+                - -1.2092
+                - 1.2092
+                tvec:
+                - 0
+                - 0
+                - 0
             cf5:
               calibration:
-                tvec: [0, 0, 0]
-                rvec: [0.61394313, -0.61394313, 1.48218982]     # 45 deg tilt
-      controller: mellinger # none, pid, mellinger
-  qos:
-      # Reliability strategy: Ensuring the way messages are transmitted
-      #   best_effort: Try your best, there may be message loss, but the delay is lower
-      #   reliable:     Reliable transmission, ensuring message delivery, with the possibility of retransmission
-    reliability: "reliable"    # optional value: "best_effort", "reliable"
-
-      # Persistent strategy: Determine whether late joining subscribers can receive historical messages
-      #   volatile:         New subscribers do not receive any historical messages
-      #   transient_local:  New subscribers can receive the last N messages published by the publisher (N determined by depth)
-    durability: "volatile"        # optional value: "volatile", "transient_local"
-
-      # Historical strategy: How to handle new messages when the queue is full
-      #   keep_last: Keep only the last N messages (N determined by depth)
-      #   keep_all:  Keep all messages (sufficient memory required, use with caution)
-    history: "keep_last"          # optional value: "keep_last", "keep_all"
-
-      # Queue depth: Define the queue buffer size when history is keep_1ast
-      #   Recommended values: Real time control (1-10), sensor data (10-100), large capacity data (100+)
-    depth: 10                     # optional value，Only effective when history="keep_1ast"
-
-      # Deadline (milliseconds): The maximum time interval between expected message releases
-      #   0: Unlimited requirement
-      #   >0: Set a specific deadline, exceeding it will trigger a default notification
-    deadline: 0                   # Milliseconds, 0 represents unlimited
-
-      # Survival time (milliseconds): The maximum effective duration of a message in the system
-      #   0: Never Expires
-      #   >0: Expired messages will be automatically discarded, even if they are still in the queue
-    lifespan: 0                   # Milliseconds, 0 represents unlimited
-
-      # Activity strategy: How nodes declare themselves alive
-      #   automatic:       Automatically managed by the system (default)
-      #   manual_by_topic: Nodes need to explicitly publish activity statements
-    liveliness: "system_default"       # optional value: "automatic", "manual_by_topic", "system_default"
-
-      # Activity lease term (milliseconds): maximum time to wait for activity declaration
-      #   If timeout occurs, it is considered that the node has failed
-    liveliness_lease_duration: 0    # ms
-
-      # Do you want to avoid ROS namespace conventions (advanced configuration)
-    avoid_ros_namespace_conventions: false    # bool: true, false
-  dds:
-    rmw_implementation: "rmw_fastrtps_cpp"    # optional value：rmw_cyclonedds_cpp/rmw_fastrtps_cpp/rmw_connextdds/rmw_gurumdds_cpp
-    domain_id: 1             
-
+                rvec:
+                - 0.61394313
+                - -0.61394313
+                - 1.48218982
+                tvec:
+                - 0
+                - 0
+                - 0
+          cycle_bg: false
+          enabled: false
+          fps: 1
+        pdf:
+          enabled: false
+          output_file: result.pdf
+        record_states:
+          enabled: false
+          file_formats:
+          - csv
+          - np
+          logging_time: 0.2
+          output_dir: state_info
+        rviz:
+          enabled: true
+    warnings:
+      communication:
+        max_unicast_latency: 10.0
+        min_broadcast_receive_rate: 0.9
+        min_unicast_ack_rate: 0.9
+        min_unicast_receive_rate: 0.9
+        publish_stats: false
+      frequency: 1.0
+      motion_capture:
+        warning_if_rate_outside:
+        - 80.0
+        - 120.0
