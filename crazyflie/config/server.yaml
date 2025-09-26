@@ -85,5 +85,5 @@
     avoid_ros_namespace_conventions: false    # bool: true, false
   dds:
     rmw_implementation: "rmw_fastrtps_cpp"    # optional value：rmw_cyclonedds_cpp/rmw_fastrtps_cpp/rmw_connextdds/rmw_gurumdds_cpp
-    domain_id: 1
+    domain_id: 0
 
