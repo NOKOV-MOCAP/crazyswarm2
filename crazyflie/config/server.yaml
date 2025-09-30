@@ -11,7 +11,7 @@
         min_broadcast_receive_rate: 0.9 # requires status topic to be enabled
         publish_stats: false
     firmware_params:
-      query_all_values_on_connect: false
+      query_all_values_on_connect: true
     # simulation related
     sim:
       max_dt: 0 #0.1              # artificially limit the step() function (set to 0 to disable)
@@ -41,6 +41,7 @@
                 tvec: [0, 0, 0]
                 rvec: [0.61394313, -0.61394313, 1.48218982]     # 45 deg tilt
       controller: mellinger # none, pid, mellinger
+    backend: cflib
   qos:
       # Reliability strategy: Ensuring the way messages are transmitted
       #   best_effort: Try your best, there may be message loss, but the delay is lower
@@ -84,5 +85,5 @@
     avoid_ros_namespace_conventions: false    # bool: true, false
   dds:
     rmw_implementation: "rmw_fastrtps_cpp"    # optional value：rmw_cyclonedds_cpp/rmw_fastrtps_cpp/rmw_connextdds/rmw_gurumdds_cpp
-    domain_id: 1             
+    domain_id: 0
 
