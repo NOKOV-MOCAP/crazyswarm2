@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; Crazyswarm2 1.0a1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=036e6a88"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ROS 2 Tutorials" href="tutorials.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Crazyswarm2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#crazyflies-yaml">crazyflies.yaml</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#positioning">Positioning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#motion-capture">Motion capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#onboard-positioning">Onboard positioning</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation">Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#physical-experiments">Physical Experiments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#teleoperation-controller">Teleoperation controller</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-scripts">Python scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#swarm-management">Swarm Management</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">ROS 2 Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howto.html">How To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Crazyswarm2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage">
+<span id="id1"></span><h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not forget to source your ROS 2 workspace in each terminal you would like to use it</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>.<span class="w"> </span>install/local_setup.bash
+</pre></div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you work in a shared network (lab, classroom) or similar, you might want to avoid
+controlling other robots. This is in particular true for simulation. In this case,
+you can use</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">ROS_LOCALHOST_ONLY</span><span class="o">=</span><span class="m">1</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">ROS_DOMAIN_ID</span><span class="o">=</span>&lt;unique<span class="w"> </span>number<span class="w"> </span>between<span class="w"> </span><span class="m">0</span><span class="w"> </span>and<span class="w"> </span><span class="m">101</span>&gt;
+</pre></div>
+</div>
+<p>The first environment variable restricts ROS to your local machine. The second is useful
+if you have multiple user accounts on the same machine (e.g., a shared workstation computer).
+In such case, each user should use a unique <a class="reference external" href="https://docs.ros.org/en/iron/Concepts/Intermediate/About-Domain-ID.html">domain ID</a>.</p>
+</div>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>All configuration files are in crazyflie/config.</p>
+<ul class="simple">
+<li><p>crazyflies.yaml : setting up everything related to the robots.</p></li>
+<li><p>server.yaml : setting up everything related to the server.</p></li>
+<li><p>motion_capture.yaml : configs for the motion capture package.</p></li>
+<li><p>teleop.yaml : configs for remote controls.</p></li>
+</ul>
+<section id="crazyflies-yaml">
+<h3>crazyflies.yaml<a class="headerlink" href="#crazyflies-yaml" title="Link to this heading"></a></h3>
+<p>Each crazyflie should have an unique URI which can <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-clients-python/master/userguides/userguide_client/#firmware-configuration/">be changed in Bitcraze’s CFclient</a>.
+They can also be enabled in case you don’t want the server to connect with it.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robots</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cf231</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">radio://0/80/2M/E7E7E7E7E7</span>
+<span class="w">        </span><span class="nt">initial_position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cf21</span><span class="w">  </span><span class="c1"># see robot_types</span>
+
+<span class="w">    </span><span class="nt">cf5</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">        </span><span class="nt">uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">radio://0/80/2M/E7E7E7E705</span>
+<span class="w">        </span><span class="nt">initial_position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cf21</span><span class="w">  </span><span class="c1"># see robot_types</span>
+</pre></div>
+</div>
+<p>The yaml file also contains different robot_types, to indicate differences between each platform:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robot_types</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cf21</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">motion_capture</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">tracking</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;librigidbodytracker&quot;</span>
+<span class="w">            </span><span class="c1"># the following settings are only relevant if &quot;librigidbodytracker&quot; is used; see motion_capture.yaml</span>
+<span class="w">            </span><span class="nt">marker</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default_single_marker</span>
+<span class="w">            </span><span class="nt">dynamics</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="w">        </span><span class="nt">big_quad</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">        </span><span class="nt">battery</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">voltage_warning</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.8</span><span class="w">  </span><span class="c1"># V</span>
+<span class="w">            </span><span class="nt">voltage_critical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.7</span><span class="w"> </span><span class="c1"># V</span>
+
+<span class="w">    </span><span class="nt">cf21_mocap_deck</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">motion_capture</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">tracking</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;librigidbodytracker&quot;</span>
+<span class="w">            </span><span class="c1"># the following settings are only relevant if &quot;librigidbodytracker&quot; is used; see motion_capture.yaml</span>
+<span class="w">            </span><span class="nt">marker</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mocap_deck</span>
+<span class="w">            </span><span class="nt">dynamics</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="w">        </span><span class="nt">big_quad</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">        </span><span class="nt">battery</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">voltage_warning</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.8</span><span class="w">  </span><span class="c1"># V</span>
+<span class="w">            </span><span class="nt">voltage_critical</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.7</span><span class="w"> </span><span class="c1"># V</span>
+</pre></div>
+</div>
+<p>The yaml file also contain an ‘all’ field, in case you have parameters or logging that you want enabled for all the connected crazyflies.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">all</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">firmware_logging</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">        </span><span class="nt">default_topics</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">pose</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w"> </span><span class="c1"># Hz</span>
+<span class="w">        </span><span class="c1">#custom_topics:</span>
+<span class="w">        </span><span class="c1">#  topic_name1:</span>
+<span class="w">        </span><span class="c1">#    frequency: 10 # Hz</span>
+<span class="w">        </span><span class="c1">#    vars: [&quot;stateEstimateZ.x&quot;, &quot;stateEstimateZ.y&quot;, &quot;stateEstimateZ.z&quot;, &quot;pm.vbat&quot;]</span>
+<span class="w">        </span><span class="c1">#  topic_name2:</span>
+<span class="w">        </span><span class="c1">#    frequency: 1 # Hz</span>
+<span class="w">        </span><span class="c1">#    vars: [&quot;stabilizer.roll&quot;, &quot;stabilizer.pitch&quot;, &quot;stabilizer.yaw&quot;]</span>
+<span class="w">    </span><span class="nt">firmware_params</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">commander</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">enHighLevel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">        </span><span class="nt">stabilizer</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">estimator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"> </span><span class="c1"># 1: complementary, 2: kalman</span>
+<span class="w">            </span><span class="nt">controller</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"> </span><span class="c1"># 1: PID, 2: mellinger</span>
+</pre></div>
+</div>
+<p>The above also contains an example of the firmware_logging field, where default topics can be enabled or custom topics based on the <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/api/logs//">existing log toc of the crazyflie</a>.
+Moreover, it also contains the firmware_params field, where parameters can be set at startup.
+Also see the <a class="reference external" href="https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/api/params//">parameter list of the crazyflie</a> for that.</p>
+<p>Mind that you can also place the firmware_params and firmware_logging fields per crazyflie in ‘robots’  or the ‘robot_types’ field.
+The server node will upon initialization, first look at the params/logs from the individual crazyflie’s settings, then the robot_types, and then anything in ‘all’ which has lowest priority.</p>
+</section>
+</section>
+<section id="positioning">
+<h2>Positioning<a class="headerlink" href="#positioning" title="Link to this heading"></a></h2>
+<p>The Crazyflie can be positioned in different ways, including motion capture and onboard positioning.
+This blogpost provides a good overview of the different positioning systems if you are unsure about which one you are using: <a class="reference external" href="https://www.bitcraze.io/2021/05/positioning-system-overview/">Positioning System Overview</a>.</p>
+<section id="motion-capture">
+<h3>Motion capture<a class="headerlink" href="#motion-capture" title="Link to this heading"></a></h3>
+<p>If you have a motion capture system, you can input the specifics in the motion_capture.yaml file.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">/motion_capture_tracking</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">ros__parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;optitrack&quot;</span>
+<span class="w">        </span><span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;optitrackPC&quot;</span>
+</pre></div>
+</div>
+<p><cite>type</cite> can be replaced by “optitrack”, “vicon”, “qualisys” or any of the other supported motion capture systems of the <a class="reference external" href="https://github.com/IMRCLab/motion_capture_tracking/tree/ros2/">motion capture tracking package</a>.
+‘hostname’ is the hostname of the computer running the motion capture software which can either be the PC name or the IP.
+Please check the documentation of the <a class="reference external" href="https://github.com/IMRCLab/motion_capture_tracking/tree/ros2/">motion capture tracking package</a> for any additional configuration that might be needed on the vendor software side.</p>
+<p>There are two different modes for tracking rigid bodies:</p>
+<ol class="arabic simple">
+<li><p>Using the vendor-specific software (e.g., VICON Tracker or OptiTrack Motive), or</p></li>
+<li><p>Using <cite>librigidbodytracker</cite>, which is a package built into the <a class="reference external" href="https://github.com/IMRCLab/motion_capture_tracking/tree/ros2/">motion capture tracking package</a> and allows to use identical marker configurations or a single marker per rigid body as long as the initial pose is known a-priori.</p></li>
+</ol>
+<p>You can enable either mode in <cite>crazyflies.yaml</cite>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robot_types</span><span class="p">:</span>
+<span class="nt">cf21</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">motion_capture</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">tracking</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;librigidbodytracker&quot;</span><span class="w"> </span><span class="c1"># use &quot;vendor&quot; for vendor-specific software or &quot;librigidbodytracker&quot; for custom frame-by-frame tracking using motion capture point clouds</span>
+<span class="w">        </span><span class="nt">marker</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default_single_marker</span>
+<span class="w">        </span><span class="nt">dynamics</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For most experiments, we recommend putting a single marker on top of the robots and use the “librigidbodytracker” with the “default_single_marker” configuration.
+In this mode, we use optimal task assignment at every frame, which makes this mode more robust to motion capture outliers compared to the duplicate marker arrangements.
+The main disadvantage is that the yaw angle cannot be observed without moving in the xy-plane.
+Nevertheless, it is possible to hover for 30 seconds in place for a Crazyflie 2.1, without causing flight instabilities.</p>
+</div>
+<p>For more in-depth information about the motion capture tracking package, see the <a class="reference external" href="https://github.com/IMRCLab/motion_capture_tracking/tree/ros2/">documentation</a>.</p>
+</section>
+<section id="onboard-positioning">
+<h3>Onboard positioning<a class="headerlink" href="#onboard-positioning" title="Link to this heading"></a></h3>
+<p>The Crazyflie also supports several alternative positioning systems that provide direct onboard position or pose estimation.
+In this case you do not need to receive positioning from an external system like with MoCap.</p>
+<p>Instructions per positioning system:</p>
+<ul class="simple">
+<li><p>The <a class="reference external" href="https://www.bitcraze.io/documentation/system/positioning/loco-positioning-system/">Loco positioning system</a> - <a class="reference external" href="https://www.bitcraze.io/documentation/tutorials/getting-started-with-loco-positioning-system/">Follow Bitcraze’s tutorial on LPS here</a>.</p></li>
+<li><p>The <a class="reference external" href="https://www.bitcraze.io/documentation/system/positioning/lighthouse/">Lighthouse positioning system</a> - <a class="reference external" href="https://www.bitcraze.io/documentation/tutorials/getting-started-with-lighthouse-positioning-system/">Follow Bitcraze’s tutorial on Lighthouse here</a>. Make sure to review the system management for saving and loading a system config, such that you don’t have to redo the basestation geometry estimation for each crazyflie.</p></li>
+<li><p>The <a class="reference external" href="https://www.bitcraze.io/products/flow-deck-v2/">Flow deck</a> -  <a class="reference external" href="https://www.bitcraze.io/documentation/tutorials/getting-started-with-flow-deck/">Follow Bitcraze’s tutorial on the flowdeck here</a>. Note that the flow deck provides an relative positoing estimate and might conflict when you are flying with crazyswarm2 if you are flying with absolute coordinates instead of relative ones.</p></li>
+</ul>
+<p>Also in this case, make sure that motion_capture is disabled in the crazyflies.yaml file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">robot_types</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cf21</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">motion_capture</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">tracking</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;vendor&quot;</span>
+</pre></div>
+</div>
+<p>Also it is a good idea to turn on pose estimation logging such that you are able to see the poses and transforms of the Crazyflie updated in real life in rviz or the Swarm management gui.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">firmware_logging</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">default_topics</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">pose</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w"> </span><span class="c1"># Hz</span>
+</pre></div>
+</div>
+<p>Moreover, be aware that the motion capture node is enabled in the launch file by default, which can be turned off by adding ‘mocap:=False’ to the launch command.</p>
+</section>
+</section>
+<section id="simulation">
+<h2>Simulation<a class="headerlink" href="#simulation" title="Link to this heading"></a></h2>
+<p>Any usage of the ROS API, including high-level Python scripts, can be visualized before execution. The initial position and number of robots is taken from the crazyflies.yaml configuration file.
+The simulation uses the firmware code as software-in-the-loop, and can optionally include the robot dynamics.
+The configuration of the simulation (physics simulator, controller, etc.) can be changed in server.yaml.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>terminal<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie_examples<span class="w"> </span>launch.py<span class="w"> </span>script:<span class="o">=</span>hello_world<span class="w"> </span>backend:<span class="o">=</span>sim
+</pre></div>
+</div>
+<p>which is a short-hand for the following two commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>terminal1<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie<span class="w"> </span>launch.py<span class="w"> </span>backend:<span class="o">=</span>sim
+<span class="o">[</span>terminal2<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>run<span class="w"> </span>crazyflie_examples<span class="w"> </span>hello_world<span class="w"> </span>--ros-args<span class="w"> </span>-p<span class="w"> </span>use_sim_time:<span class="o">=</span>True
+</pre></div>
+</div>
+</section>
+<section id="physical-experiments">
+<h2>Physical Experiments<a class="headerlink" href="#physical-experiments" title="Link to this heading"></a></h2>
+<section id="teleoperation-controller">
+<h3>Teleoperation controller<a class="headerlink" href="#teleoperation-controller" title="Link to this heading"></a></h3>
+<p>We currently assume an XBox controller (the button mapping can be changed in teleop.yaml). It is possible to fly in different modes, including attitude-control and position-control (in which case any localization system can assist.)</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie<span class="w"> </span>launch.py
+</pre></div>
+</div>
+</section>
+<section id="python-scripts">
+<h3>Python scripts<a class="headerlink" href="#python-scripts" title="Link to this heading"></a></h3>
+<p>In the first terminal run the server, in the second the desired script.
+You may run the script multiple times or different scripts while leaving the server running.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>terminal1<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie<span class="w"> </span>launch.py
+<span class="o">[</span>terminal2<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>run<span class="w"> </span>crazyflie_examples<span class="w"> </span>hello_world
+</pre></div>
+</div>
+<p>If you only want to run a single script once, you can also use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>terminal<span class="o">]</span>$<span class="w"> </span>ros2<span class="w"> </span>launch<span class="w"> </span>crazyflie_examples<span class="w"> </span>launch.py<span class="w"> </span>script:<span class="o">=</span>hello_world
+</pre></div>
+</div>
+</section>
+</section>
+<section id="swarm-management">
+<h2>Swarm Management<a class="headerlink" href="#swarm-management" title="Link to this heading"></a></h2>
+<p>The launch file will also start a swarm management tool that is a ROS node and web-based GUI.
+In the upper pane is the location of the drone visualized in a 3D window, similar to rviz.
+In the lower pane, the status as well as log messages are visible (tabbed per drone).
+In the future, we are planning to add support for rebooting and other actions.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials.html" class="btn btn-neutral float-right" title="ROS 2 Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021-2025, Wolfgang Hönig (TU Berlin), Kimberly N. McGuire (Independent), and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
