@@ -27,7 +27,7 @@ from crazyflie_interfaces.srv import Takeoff, Land, GoTo, RemoveLogging, AddLogg
 from crazyflie_interfaces.srv import UploadTrajectory, StartTrajectory, NotifySetpointsStop
 from crazyflie_interfaces.srv import Arm
 from rcl_interfaces.msg import ParameterDescriptor, SetParametersResult, ParameterType
-from crazyflie_interfaces.msg import Position, Status, Hover, LogDataGeneric, FullState
+from crazyflie_interfaces.msg import Position, Status, Hover, LogDataGeneric, FullState, VelocityWorld
 from motion_capture_tracking_interfaces.msg import NamedPoseArray
 
 from std_srvs.srv import Empty
@@ -328,6 +328,11 @@ class CrazyflieServer(Node):
             self.create_subscription(
                 Position, name +
                 "/cmd_position", partial(self._cmd_position_changed, uri=uri), 10
+            )
+
+            self.create_subscription(
+                VelocityWorld, name +
+                "/cmd_velocity_world", partial(self._cmd_velocity_world_changed, uri=uri),  10
             )
 
             self.create_subscription(
@@ -1151,6 +1156,19 @@ class CrazyflieServer(Node):
         yaw = msg.yaw
         self.swarm._cfs[uri].cf.commander.send_position_setpoint(
             x, y, z, yaw)
+        
+    def _cmd_velocity_world_changed(self, msg, uri=""):
+        """
+        Topic update callback to control the world velocity command
+            of the crazyflie
+        """
+        vel = msg.vel
+        vx = vel.x
+        vy = vel.y
+        vz = vel.z
+        yaw_rate = msg.yaw_rate
+        self.swarm._cfs[uri].cf.commander.send_velocity_world_setpoint(
+            vx, vy, vz, yaw_rate)
 
     def _cmd_hover_changed(self, msg, uri=""):
         """

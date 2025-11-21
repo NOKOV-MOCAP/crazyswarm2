@@ -5,7 +5,7 @@ Overview
 
 This page will explain the overview of the crazyflie ROS 2 nodes:
 
-.. image:: images/overview_nodes.jpg
+.. image:: images/architecture.png
 
 
 Explanation per package
@@ -82,6 +82,8 @@ Support functionality with backends
 | - cmd_position      | Yes     | Yes       | No      |
 +---------------------+---------+-----------+---------+
 | - cmd_hover         | Yes     | Yes       | No      |
++---------------------+---------+-----------+---------+
+| - cmd_velocity_world| Yes     | Yes       | No      |
 +---------------------+---------+-----------+---------+
 | High-level control                                  |
 +---------------------+---------+-----------+---------+
