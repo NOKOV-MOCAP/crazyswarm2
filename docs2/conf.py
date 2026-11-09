@@ -39,7 +39,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     'sphinxarg.ext',
-    'sphinx_tabs.tabs',
+    'sphinx_design',
     'sphinxcontrib.programoutput',
     'sphinx_rtd_theme',
 ]

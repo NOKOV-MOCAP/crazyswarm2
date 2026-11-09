@@ -3,5 +3,5 @@ pyyaml
 sphinx
 sphinx-argparse
 sphinx-rtd-theme
-sphinx-tabs
+sphinx_design
 sphinxcontrib-programoutput
