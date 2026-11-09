@@ -27,20 +27,22 @@ First Installation
 
 2. Install dependencies
 
-    .. tabs::
+    .. tab-set::
 
-        .. group-tab:: Binary Installation
+        .. tab-item:: Binary Installation
+            :sync: bin
 
             .. code-block:: bash
 
-                pip3 install rowan nicegui
+                pip3 install rowan
 
-        .. group-tab:: Source Installation
+        .. tab-item:: Source Installation
+            :sync: src
 
             .. code-block:: bash
 
                 sudo apt install libboost-program-options-dev libusb-1.0-0-dev
-                pip3 install rowan nicegui
+                pip3 install rowan
 
    Then install the motion capture ROS 2 package (replace <DISTRO> with your version of ROS, namely humble or jazzy):
 
@@ -57,9 +59,10 @@ First Installation
 
 3. Set up your ROS 2 workspace
 
-    .. tabs::
+    .. tab-set::
 
-        .. group-tab:: Binary Installation
+        .. tab-item:: Binary Installation
+            :sync: bin
 
             Then install the crazyswarm2 stack (replace <DISTRO> with your version of ROS, namely humble or jazzy):
 
@@ -69,7 +72,9 @@ First Installation
 
             To prepare your workspace, see "Custom ROS Package" section below.
 
-        .. group-tab:: Source Installation
+        .. tab-item:: Source Installation
+            :sync: src
+
             Clone the Crazyswarm2 repository
 
             .. code-block:: bash
@@ -91,7 +96,16 @@ First Installation
          
             .. note::
                 If you install it for the first time, you will see a lot of warnings at first. 
-                As long as the build of the package finish, you can ignore this for now. 
+                As long as the build of the package finish, you can ignore this for now.
+
+            .. warning::
+               If you get build errors from missing pip, your machine are probably missing some additional packages that were missed in the initial ROS installation (see this `issue <https://github.com/IMRCLab/crazyswarm2/issues/863/>`_.)
+               Please pip install then the following and try again:
+               
+               .. code-block:: bash
+
+                  pip3 install catkin_pkg lark-parser empy==3.3.4 colcon-common-extensions
+               
        
 
 4. Set up Crazyradio
@@ -101,7 +115,7 @@ First Installation
    You will also need to update the Crazyradio firmware to the latest development branch to be able to use all features.
    
     - For Crazyradio PA (1), `follow these instructions <https://www.bitcraze.io/documentation/repository/crazyradio-firmware/master/building/building_flashing/>`_.
-    - For Crazyradio 2, follow `these instuctions to flash <https://www.bitcraze.io/documentation/repository/crazyradio2-firmware/main/building-and-flashing/flash//>`_ the `latest release <https://github.com/bitcraze/crazyradio2-firmware/releases>`_ (we tested version 5.1).
+    - For Crazyradio 2, follow `these instructions to flash <https://www.bitcraze.io/documentation/repository/crazyradio2-firmware/main/building-and-flashing/flash//>`_ the `latest release <https://github.com/bitcraze/crazyradio2-firmware/releases>`_ (we tested version 5.1).
 
 5. Update the Crazyflies
 
@@ -119,10 +133,12 @@ First Installation
 
         git clone --branch 2025.02 --single-branch --recursive https://github.com/bitcraze/crazyflie-firmware.git
 
-    First follow `the instructions to build the python bindings <https://www.bitcraze.io/documentation/repository/crazyflie-firmware/master/building-and-flashing/build/#build-python-bindings>`_ from the bitcraze website. Afterwards, make sure that the bindings can be found in the python path:
+    First build the python binding from the source code of the Crazyflie firmware. Afterwards, make sure that the bindings can be found in the python path:
 
     .. code-block:: bash
 
+        make cf2_defconfig
+        make bindings_python
         export PYTHONPATH=<replace-with-path-to>/crazyflie-firmware/build:$PYTHONPATH
         
     If you are working from an older version of the crazyflie-firmware (before tag 2023.02), then you will need to point to main folder of the repo by removing the '/build' part. 
@@ -133,16 +149,18 @@ Updating
 
 You can update your local copy using the following commands:
 
-    .. tabs::
+    .. tab-set::
 
-        .. group-tab:: Binary Installation
+        .. tab-item:: Binary Installation
+            :sync: bin
 
             .. code-block:: bash
 
                 sudo apt update
                 sudo apt upgrade
 
-        .. group-tab:: Source Installation
+        .. tab-item:: Source Installation
+            :sync: src
 
             .. code-block:: bash
 
